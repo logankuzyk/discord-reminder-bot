@@ -32,7 +32,10 @@ module.exports.execute = async ({ bot, msg, input, channel, course }) => {
       let weekFromNow = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
       let assignments = res.data.values.filter(
         (row) =>
-          row[0] > Date.now() && row[0] < weekFromNow && row[3] == "assignment"
+          row[0] > Date.now() &&
+          row[0] < weekFromNow &&
+          row[3] == "assignment" &&
+          row[1] == course
       );
       for (let row of assignments) {
         output += `${row[4]} is due ${new Date(Number(row[0]))}\n`;
