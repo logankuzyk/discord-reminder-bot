@@ -32,7 +32,6 @@ module.exports.execute = async ({ bot, msg, input, channel, course }) => {
         } else if (channel) {
           channel.send(output);
         }
-        return;
       }
       output = "";
       output += `Here are the assignments due in the next 7 days for ${course}\n`;
@@ -48,6 +47,11 @@ module.exports.execute = async ({ bot, msg, input, channel, course }) => {
         output += `${row[4]} is due ${new Date(Number(row[0]))}\n`;
       }
       console.log(output);
+      if (msg) {
+        msg.reply(output);
+      } else if (channel) {
+        channel.send(output);
+      }
     });
 
   return;
