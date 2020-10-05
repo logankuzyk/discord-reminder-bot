@@ -18,8 +18,18 @@ module.exports.about = "Display the assignments that are due today.";
 module.exports.help = "Example command: ``$today``";
 
 module.exports.execute = async ({ bot, msg, input, channel, course }) => {
-  if (!course) course = msg.channel.name;
-  let output = `No due dates have been added for ${course}. Want to add some? Use \`\`$add\`\`.`;
+  if (!course && msg) course = msg.channel.name;
+  else if (!course && channel) course = channel.name;
+  else if (course == "bot-commands") {
+    if (/^(?<course>([(a-z]{3,4}-([0-9]{2})\w$))/g.exec(input)) {
+      course = /^(?<course>([(a-z]{3,4}-([0-9]{2})\w$))/g.exec(input);
+    } else {
+      throw new Error(
+        "You need to specify the course when using the bot-commands channel."
+      );
+    }
+  }
+  let output = `Nothing is due in the next 24 hours for ${course}! Or no one has added any due dates yet. Be the hero! Add some with \`\`$add\`\`.`;
   sheets.spreadsheets.values
     .get({
       spreadsheetId: process.env.SHEET_ID,
@@ -55,6 +65,5 @@ module.exports.execute = async ({ bot, msg, input, channel, course }) => {
         channel.send(output);
       }
     });
-
   return;
 };

@@ -19,11 +19,16 @@ module.exports.help = "Example command: ``$upcoming``";
 
 module.exports.execute = async ({ bot, msg, input, channel, course }) => {
   if (!course && msg) course = msg.channel.name;
-  if (!course && channel) course = channel.name;
-  if (course == "bot-commands")
-    throw new Error(
-      "You need to specify the course when using the bot-commands channel."
-    );
+  else if (!course && channel) course = channel.name;
+  else if (course == "bot-commands") {
+    if (/^(?<course>([(a-z]{3,4}-([0-9]{2})\w$))/g.exec(input)) {
+      course = /^(?<course>([(a-z]{3,4}-([0-9]{2})\w$))/g.exec(input);
+    } else {
+      throw new Error(
+        "You need to specify the course when using the bot-commands channel."
+      );
+    }
+  }
   let output = `Nothing is due in the next 7 days for ${course}! Or no one has added any due dates yet. Be the hero! Add some with \`\`$add\`\`.`;
   sheets.spreadsheets.values
     .get({
@@ -58,7 +63,7 @@ module.exports.execute = async ({ bot, msg, input, channel, course }) => {
       } else if (channel) {
         channel.send(output);
       }
-    });
-
+    })
+    .catch(console.log("Something went wrong with Google Sheets"));
   return;
 };
