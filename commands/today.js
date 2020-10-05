@@ -20,9 +20,9 @@ module.exports.help = "Example command: ``$today``";
 module.exports.execute = async ({ bot, msg, input, channel, course }) => {
   if (!course && msg) course = msg.channel.name;
   else if (!course && channel) course = channel.name;
-  else if (course == "bot-commands") {
+  if (course == "bot-commands") {
     if (/^(?<course>([(a-z]{3,4}-([0-9]{2})\w$))/g.exec(input)) {
-      course = /^(?<course>([(a-z]{3,4}-([0-9]{2})\w$))/g.exec(input);
+      course = /^(?<course>([(a-z]{3,4}-([0-9]{2})\w$))/g.exec(input)[0];
     } else {
       throw new Error(
         "You need to specify the course when using the bot-commands channel."
@@ -36,7 +36,6 @@ module.exports.execute = async ({ bot, msg, input, channel, course }) => {
       range: "A1:E",
     })
     .then((res) => {
-      console.log("hello");
       if (!res.data.values) {
         if (msg) {
           msg.reply(output);
@@ -45,8 +44,6 @@ module.exports.execute = async ({ bot, msg, input, channel, course }) => {
         }
         return;
       }
-      output = "";
-      output += `Here are the assignments due in the next 24 hours for ${course}\n`;
       let weekFromNow = new Date(Date.now() + 24 * 60 * 60 * 1000);
       let assignments = res.data.values.filter(
         (row) =>
@@ -55,8 +52,12 @@ module.exports.execute = async ({ bot, msg, input, channel, course }) => {
           row[3] == "assignment" &&
           row[1] == course
       );
-      for (let row of assignments) {
-        output += `${row[4]} is due ${new Date(Number(row[0]))}\n`;
+      if (assignments.length > 0) {
+        output = "";
+        output += `Here are the assignments due in the next 24 hours for ${course}\n`;
+        for (let row of assignments) {
+          output += `${row[4]} is due ${new Date(Number(row[0]))}\n`;
+        }
       }
       console.log(output);
       if (msg) {
