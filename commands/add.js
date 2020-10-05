@@ -73,9 +73,7 @@ module.exports.execute = async ({ bot, msg, input }) => {
         );
         return bot.loadRange(res.data.updates.updatedRange);
       })
-      .catch((err) => {
-        console.log("Something went wrong with Google Sheets");
-      });
+      .catch(console.log("Something went wrong with Google Sheets"));
   } catch (err) {
     if (err.name == "TypeError") {
       throw new Error("Date is invalid or not present, try YYYY-MM-DD");

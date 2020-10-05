@@ -18,7 +18,7 @@ module.exports.about =
 module.exports.help =
   "Example command: ``$remind 2020-09-30 at 12pm for math-200``";
 
-module.exports.execute = async ({ bot, msg, input }) => {
+module.exports.execute = ({ bot, msg, input }) => {
   try {
     let {
       groups: { date, time, timeSuffix, course },
@@ -49,7 +49,7 @@ module.exports.execute = async ({ bot, msg, input }) => {
     }
     if (msg.createdTimestamp > date.getTime())
       throw new Error("Can't change history");
-    await sheets.spreadsheets.values
+    sheets.spreadsheets.values
       .append({
         spreadsheetId: process.env.SHEET_ID,
         valueInputOption: "RAW",
