@@ -28,7 +28,7 @@ module.exports.execute = async ({ bot, msg, input }) => {
   time = Number(time);
   if (!course && msg.channel.name != "bot-commands") {
     course = msg.channel.name;
-  } else if (msg.channel.name == "bot-commands") {
+  } else if (msg.channel.name == "bot-commands" && !course) {
     throw new Error(
       "Since you're in the bot-commands channel, you're going to need to provide the course for this reminder."
     );
