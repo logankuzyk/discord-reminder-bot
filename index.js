@@ -102,21 +102,22 @@ bot.on("message", async (msg) => {
   let {
     groups: { command, input },
   } = /^\$(?<command>\w+)( )*(?<input>(.+) *)*$/g.exec(msg.content);
-  try {
-    bot.commands.get(command).execute({ bot: bot, msg: msg, input: input });
-  } catch (err) {
-    if (err.name == "TypeError") {
-      console.log("Not a recognized command");
-      console.log(err);
-      msg.reply(
-        `That isn't a recognized command, type \`\`$help\`\` for a list of available commands.`
-      );
-      msg.react("😂");
-    } else {
-      console.log(err);
-      msg.reply(`Something went wrong. \`\`${err}\`\``);
-    }
-  }
+  bot.commands
+    .get(command)
+    .execute({ bot: bot, msg: msg, input: input })
+    .catch((err) => {
+      if (err.name == "TypeError") {
+        console.log("Not a recognized command");
+        console.log(err);
+        msg.reply(
+          `That isn't a recognized command, type \`\`$help\`\` for a list of available commands.`
+        );
+        msg.react("😂");
+      } else {
+        console.log(err);
+        msg.reply(`Something went wrong. \`\`${err}\`\``);
+      }
+    });
 });
 
 bot.login(process.env.TOKEN);
