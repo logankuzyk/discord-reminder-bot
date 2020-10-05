@@ -18,8 +18,13 @@ module.exports.about = "List the next 7 days of assignments.";
 module.exports.help = "Example command: ``$upcoming``";
 
 module.exports.execute = async ({ bot, msg, input, channel, course }) => {
-  if (!course) course = msg.channel.name;
-  let output = `No due dates have been added for ${course}. Want to add some? Use \`\`$add\`\`.`;
+  if (!course && msg) course = msg.channel.name;
+  if (!course && channel) course = channel.name;
+  if (course == "bot-commands")
+    throw new Error(
+      "You need to specify the course when using the bot-commands channel."
+    );
+  let output = `Nothing is due in the next 7 days for ${course}! Or no one has added any due dates yet. Be the hero! Add some with \`\`$add\`\`.`;
   sheets.spreadsheets.values
     .get({
       spreadsheetId: process.env.SHEET_ID,
@@ -32,6 +37,7 @@ module.exports.execute = async ({ bot, msg, input, channel, course }) => {
         } else if (channel) {
           channel.send(output);
         }
+        return;
       }
       output = "";
       output += `Here are the assignments due in the next 7 days for ${course}\n`;
