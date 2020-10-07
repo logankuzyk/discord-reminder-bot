@@ -15,7 +15,8 @@ const sheets = google.sheets({
 
 module.exports.about = "List the next 7 days of assignments.";
 
-module.exports.help = "Example command: ``$upcoming``";
+module.exports.help =
+  "Example command: ``$upcoming`` \nGeneral form: ``$upcoming ([course])?``";
 
 module.exports.execute = async ({ bot, msg, input, channel, course }) => {
   if (!course && msg) course = msg.channel.name;

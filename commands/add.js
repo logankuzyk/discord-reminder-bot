@@ -16,7 +16,7 @@ const sheets = google.sheets({
 module.exports.about = "Add an assignment due date to the calendar.";
 
 module.exports.help =
-  "Example command: ``$add Worksheet 2 on 2020-09-29 at 11pm for math-122``";
+  "Example command: ``$add Worksheet 2 on 2020-09-29 at 11:00pm for math-122`` \nGeneral form: ``$add [name] on [YYYY-MM-DD] (at [HH:mm])? (for [course])?``";
 
 module.exports.execute = async ({ bot, msg, input }) => {
   let {

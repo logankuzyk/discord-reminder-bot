@@ -17,7 +17,7 @@ module.exports.about =
   "Get reminded about a classes' due dates at a certain time.";
 
 module.exports.help =
-  "Example command: ``$remind 2020-09-30 at 12pm for math-200``";
+  "Example command: ``$remind 2020-09-30 at 12pm for math-200`` \nGeneral form: ``$remind [YYYY-MM-DD] (at [HH:mm])? (for [course])?``";
 
 module.exports.execute = async ({ bot, msg, input }) => {
   let {
