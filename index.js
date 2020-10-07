@@ -29,18 +29,20 @@ bot.loadRange = (range) => {
       }
       for (let row of res.data.values) {
         let date = new Date(Number(row[1]));
-        if (row[4] == "reminder" && date.getTime() > Date.now()) {
-          let user = bot.users.cache.get(row[3]);
-          user.createDM().then((dmChannel) => {
-            bot.addJob(date, bot.commands.get("upcoming").execute, {
-              bot: bot,
-              channel: dmChannel,
-              course: row[2],
+        if (date.getTime() > Date.now()) {
+          if (row[4] == "reminder") {
+            let user = bot.users.cache.get(row[3]);
+            user.createDM().then((dmChannel) => {
+              bot.addJob(date, bot.commands.get("upcoming").execute, {
+                bot: bot,
+                channel: dmChannel,
+                course: row[2],
+              });
             });
-          });
-          console.log(`Added reminder on ${date.toString()}`);
+            console.log(`Added reminder on ${date.toString()}`);
+          }
+          console.log(`Added due date on ${date.toString()}`);
         }
-        console.log(`Added due date on ${date.toString()}`);
       }
     });
 };
