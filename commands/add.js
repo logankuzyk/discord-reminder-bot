@@ -1,4 +1,5 @@
 const { google } = require("googleapis");
+const randomstring = require("randomstring");
 
 const auth = new google.auth.GoogleAuth({
   keyFile: process.env.GOOGLE_APPLICATION_CREDENTIALS,
@@ -19,12 +20,12 @@ module.exports.help =
 
 module.exports.execute = async ({ bot, msg, input }) => {
   let {
-    groups: { note, date, time, timeSuffix, course },
-  } = /^(?<note>(\w( )*)+) on (?<date>\S+)( at ((?<time>\d{1,2})(?<timeSuffix>[a-z]{2})*))*( for (?<course>([(a-z]{3,4}-([0-9]{2})\w$)))*$/g.exec(
+    groups: { note, date, hour, minute, timeSuffix, course },
+  } = /^(?<note>(\w( )*)+) on (?<date>\S+)( at ((?<hour>\d{1,2})(:(?<minute>\d{2}))*(?<timeSuffix>[a-z]{2})*))*( for (?<course>([(a-z]{3,4}-([0-9]{2})\w$)))*$/g.exec(
     input
   );
-  date = new Date(date);
-  time = Number(time);
+  hour = Number(hour);
+  minute = Number(minute);
   if (!course && msg.channel.name != "bot-commands") {
     course = msg.channel.name;
   } else if (msg.channel.name == "bot-commands" && !course) {
@@ -32,21 +33,29 @@ module.exports.execute = async ({ bot, msg, input }) => {
       "Since you're in the bot-commands channel, you're going to need to provide the course for this due date."
     );
   }
-  if (date == "Invalid Date") throw new Error("Date is invalid or not present");
-  if (time && timeSuffix) {
-    if (timeSuffix.toLowerCase() == "pm" && time != 12) {
-      date.setHours(time + 12);
-    } else if (timeSuffix.toLowerCase() == "pm" && time == 12) {
-      date.setHours(12);
-    } else if (time != 12) {
-      date.setHours(time);
+  if (hour && timeSuffix) {
+    if (timeSuffix.toLowerCase() == "pm" && hour != 12) {
+      hour += 12;
     }
-  } else if (time) {
-    date.setHours(time);
+  } else if (hour == 24) {
+    hour = 0;
   }
+  if (hour && minute) {
+    date += ` ${hour}:${minute}`;
+  } else if (hour) {
+    date += ` ${hour}:00`;
+  }
+  date = new Date(date);
+  console.log(date.toString());
+  if (date == "Invalid Date") throw new Error("Date is invalid or not present");
   if (msg.createdTimestamp > date.getTime())
     throw new Error("Can't add past assignment");
-  await sheets.spreadsheets.values
+  let id = await randomstring.generate({
+    length: 6,
+    readable: true,
+    charset: "alphabetic",
+  });
+  sheets.spreadsheets.values
     .append({
       spreadsheetId: process.env.SHEET_ID,
       valueInputOption: "RAW",
@@ -55,15 +64,14 @@ module.exports.execute = async ({ bot, msg, input }) => {
       resource: {
         range: "A1:A",
         values: [
-          [date.getTime(), msg.channel.name, msg.author.id, "assignment", note],
+          [id, date.getTime(), course, msg.author.id, "assignment", note],
         ],
       },
     })
     .then((res) => {
       msg.reply(
-        `Due date added! ${note} is due at ${date.toString()} for ${course}. To set a reminder, use \`\`$remind\`\` followed by the date and time to be reminded.`
+        `Due date added! ${note} is due at ${date.toString()} for ${course}. \nTo set a reminder, use \`\`$remind\`\` followed by the date and time to be reminded. \nThis assignment's unique ID is \`\`${id}\`\``
       );
       return bot.loadRange(res.data.updates.updatedRange);
-    })
-    .catch(console.log("Something went wrong with Google Sheets"));
+    });
 };
