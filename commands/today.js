@@ -33,7 +33,7 @@ module.exports.execute = async ({ bot, msg, input, channel, course }) => {
   sheets.spreadsheets.values
     .get({
       spreadsheetId: process.env.SHEET_ID,
-      range: "A2:F",
+      range: "A2:G",
     })
     .then((res) => {
       if (!res.data.values) {
@@ -56,7 +56,7 @@ module.exports.execute = async ({ bot, msg, input, channel, course }) => {
         output = "";
         output += `Here are the assignments due in the next 24 hours for ${course}\n`;
         for (let row of assignments) {
-          output += `${row[5]} is due ${new Date(Number(row[1]))}\n`;
+          output += `${row[6]} is due ${new Date(Number(row[1]))}\n`;
         }
       }
       console.log(output);
