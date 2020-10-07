@@ -65,7 +65,6 @@ module.exports.execute = async ({ bot, msg, input, channel, course }) => {
       } else if (channel) {
         channel.send(output);
       }
-    })
-    .catch(console.log("Something went wrong with Google Sheets"));
+    });
   return;
 };
