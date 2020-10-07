@@ -60,9 +60,9 @@ module.exports.execute = async ({ bot, msg, input }) => {
       spreadsheetId: process.env.SHEET_ID,
       valueInputOption: "RAW",
       insertDataOption: "INSERT_ROWS",
-      range: "A1:A",
+      range: "A2:A",
       resource: {
-        range: "A1:A",
+        range: "A2:A",
         values: [
           [id, date.getTime(), course, msg.author.id, "assignment", note],
         ],

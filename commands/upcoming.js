@@ -33,7 +33,7 @@ module.exports.execute = async ({ bot, msg, input, channel, course }) => {
   sheets.spreadsheets.values
     .get({
       spreadsheetId: process.env.SHEET_ID,
-      range: "A1:E",
+      range: "A2:F",
     })
     .then((res) => {
       if (!res.data.values) {
