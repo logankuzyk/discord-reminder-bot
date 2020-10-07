@@ -108,17 +108,8 @@ bot.on("message", async (msg) => {
       .get(command)
       .execute({ bot: bot, msg: msg, input: input })
       .catch((err) => {
-        if (err.name == "TypeError") {
-          console.log("Not a recognized command");
-          console.log(err);
-          msg.reply(
-            `That isn't a recognized command, type \`\`$help\`\` for a list of available commands.`
-          );
-          msg.react("😂");
-        } else {
-          console.log(err);
-          msg.reply(`Something went wrong. \`\`${err}\`\``);
-        }
+        console.log(err);
+        msg.reply(`Something went wrong. \`\`${err}\`\``);
       });
   } catch (err) {
     if (err.name == "TypeError") {
