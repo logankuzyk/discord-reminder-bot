@@ -21,8 +21,8 @@ module.exports.help =
 
 module.exports.execute = async ({ bot, msg, input }) => {
   let {
-    groups: { note, date, hour, minute, timeSuffix, course },
-  } = /^(?<note>(\w( )*)+) on (?<date>\S+)( at ((?<hour>\d{1,2})(:(?<minute>\d{2}))*(?<timeSuffix>[a-z]{2})*))*( for (?<course>([(a-z]{3,4}-([0-9]{2})\w$)))*$/g.exec(
+    groups: { date, hour, minute, timeSuffix, course },
+  } = /^(?<date>\S+)( at ((?<hour>\d{1,2})(:(?<minute>\d{2}))*(?<timeSuffix>[a-z]{2})*))*( for (?<course>([(a-z]{3,4}-([0-9]{2})\w$)))*$/g.exec(
     input
   );
   hour = Number(hour);
@@ -45,6 +45,8 @@ module.exports.execute = async ({ bot, msg, input }) => {
     date += ` ${hour}:${minute}`;
   } else if (hour) {
     date += ` ${hour}:00`;
+  } else {
+    date += ` 00:00`;
   }
   date = new Date(date);
   console.log(date.toString());
