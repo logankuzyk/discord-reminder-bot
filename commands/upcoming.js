@@ -47,16 +47,16 @@ module.exports.execute = async ({ bot, msg, input, channel, course }) => {
       let weekFromNow = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
       let assignments = res.data.values.filter(
         (row) =>
-          row[0] > Date.now() &&
-          row[0] < weekFromNow &&
-          row[3] == "assignment" &&
-          row[1] == course
+          row[1] > Date.now() &&
+          row[1] < weekFromNow &&
+          row[4] == "assignment" &&
+          row[2] == course
       );
       if (assignments.length > 0) {
         output = "";
         output += `Here are the assignments due in the next 7 days for ${course}\n`;
         for (let row of assignments) {
-          output += `${row[4]} is due ${new Date(Number(row[0]))}\n`;
+          output += `${row[5]} is due ${new Date(Number(row[1]))}\n`;
         }
       }
       console.log(output);
