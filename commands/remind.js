@@ -20,11 +20,18 @@ module.exports.help =
   "Example command: ``$remind 2020-09-30 at 12pm for math-200`` \nGeneral form: ``$remind [YYYY-MM-DD] (at [HH:mm])? (for [course])?``";
 
 module.exports.execute = async ({ bot, msg, input }) => {
-  let {
-    groups: { date, hour, minute, timeSuffix, course },
-  } = /^(?<date>\S+)( at ((?<hour>\d{1,2})(:(?<minute>\d{2}))*(?<timeSuffix>[a-z]{2})*))*( for (?<course>([(a-z]{3,4}-([0-9]{2})\w$)))*$/g.exec(
-    input
-  );
+  try {
+    let {
+      groups: { date, hour, minute, timeSuffix, course },
+    } = /^(?<date>\S+)( at ((?<hour>\d{1,2})(:(?<minute>\d{2}))*(?<timeSuffix>[a-z]{2})*))*( for (?<course>([(a-z]{3,4}-([0-9]{2})\w$)))*$/g.exec(
+      input
+    );
+  } catch (err) {
+    throw new Error(
+      "Your command doesn't match the format. Try ``$help remind`` if you're stuck."
+    );
+  }
+
   hour = Number(hour);
   minute = Number(minute);
   if (!course && msg.channel.name != "bot-commands") {

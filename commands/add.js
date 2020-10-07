@@ -19,11 +19,17 @@ module.exports.help =
   "Example command: ``$add Worksheet 2 on 2020-09-29 at 11:00pm for math-122`` \nGeneral form: ``$add [name] on [YYYY-MM-DD] (at [HH:mm])? (for [course])?``";
 
 module.exports.execute = async ({ bot, msg, input }) => {
-  let {
-    groups: { note, date, hour, minute, timeSuffix, course },
-  } = /^(?<note>(\w( )*)+) on (?<date>\S+)( at ((?<hour>\d{1,2})(:(?<minute>\d{2}))*(?<timeSuffix>[a-z]{2})*))*( for (?<course>([(a-z]{3,4}-([0-9]{2})\w$)))*$/g.exec(
-    input
-  );
+  try {
+    let {
+      groups: { note, date, hour, minute, timeSuffix, course },
+    } = /^(?<note>(\w( )*)+) on (?<date>\S+)( at ((?<hour>\d{1,2})(:(?<minute>\d{2}))*(?<timeSuffix>[a-z]{2})*))*( for (?<course>([(a-z]{3,4}-([0-9]{2})\w$)))*$/g.exec(
+      input
+    );
+  } catch (err) {
+    throw new Error(
+      "Your command doesn't match the format. Try $help add if you're stuck."
+    );
+  }
   hour = Number(hour);
   minute = Number(minute);
   if (!course && msg.channel.name != "bot-commands") {
