@@ -126,4 +126,15 @@ bot.on("message", async (msg) => {
   }
 });
 
+bot.on("guildCreate", async (guild) => {
+  let channel = guild.channels.cache.find(
+    (channel) => channel.name == "bot-commands" && channel.type == "text"
+  );
+  if (channel) {
+    channel.send(
+      "I'm here to keep track of your assignments! To get started, type ``$help``!"
+    );
+  }
+});
+
 bot.login(process.env.TOKEN);
