@@ -70,7 +70,7 @@ module.exports.execute = async ({ bot, msg, input }) => {
     })
     .then((res) => {
       msg.reply(
-        `Due date added! ${note} is due at ${date.toString()} for ${course}. \nTo set a reminder, use \`\`$remind\`\` followed by the date and time to be reminded. \nThis assignment's unique ID is \`\`${id}\`\``
+        `Due date added! ${note} is due at ${date.toString()} for ${course}. \nTo set a reminder, use \`\`$remind\`\` followed by the date and time to be reminded. \nReact with a 👍 if the due date is accurate; 👎 if it isn't. \nThis assignment's unique ID is \`\`${id}\`\``
       );
       return bot.loadRange(res.data.updates.updatedRange);
     });
