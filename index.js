@@ -38,8 +38,9 @@ bot.loadRange = (range) => {
               course: row[2],
             });
           });
+          console.log(`Added reminder on ${date.toString()}`);
         }
-        console.log(`Added job on ${date.toString()}`);
+        console.log(`Added due date on ${date.toString()}`);
       }
     });
 };
@@ -79,7 +80,7 @@ bot.on("ready", () => {
       channel: channel[1],
     });
   }
-  bot.loadRange("A1:E");
+  bot.loadRange("A2:F");
 });
 
 bot.on("message", async (msg) => {
