@@ -103,22 +103,59 @@ bot.on("message", async (msg) => {
   let {
     groups: { command, input },
   } = /^\$(?<command>\w+)( )*(?<input>(.+) *)*$/g.exec(msg.content);
-  bot.commands
-    .get(command)
-    .execute({ bot: bot, msg: msg, input: input })
-    .catch((err) => {
-      if (err.name == "TypeError") {
-        console.log("Not a recognized command");
-        console.log(err);
-        msg.reply(
-          `That isn't a recognized command, type \`\`$help\`\` for a list of available commands.`
-        );
-        msg.react("😂");
-      } else {
-        console.log(err);
-        msg.reply(`Something went wrong. \`\`${err}\`\``);
-      }
-    });
+  try {
+    bot.commands.get(command).execute({ bot: bot, msg: msg, input: input });
+    // .catch((err) => {
+    //   if (err.name == "TypeError") {
+    //     console.log("Not a recognized command");
+    //     console.log(err);
+    //     msg.reply(
+    //       `That isn't a recognized command, type \`\`$help\`\` for a list of available commands.`
+    //     );
+    //     msg.react("😂");
+    //   } else {
+    //     console.log(err);
+    //     msg.reply(`Something went wrong. \`\`${err}\`\``);
+    //   }
+    // });
+  } catch (err) {
+    if (err.name == "TypeError") {
+      console.log("Not a recognized command");
+      console.log(err);
+      msg.reply(
+        `That isn't a recognized command, type \`\`$help\`\` for a list of available commands.`
+      );
+      msg.react("😂");
+    } else {
+      console.log(err);
+      msg.reply(`Something went wrong. \`\`${err}\`\``);
+    }
+  }
 });
+
+// bot.on("messageReactionAdd", async (reaction, user) => {
+//   try {
+//     await reaction.fetch();
+//   } catch (err) {
+//     console.log(`Something went wrong getting the message: ${err}`);
+//     return;
+//   }
+//   sheets.spreadsheets.values
+//     .append({
+//       spreadsheetId: process.env.SHEET_ID,
+//       valueInputOption: "RAW",
+//       insertDataOption: "INSERT_ROWS",
+//       range: "A2:A",
+//       resource: {
+//         range: "A2:A",
+//         values: [
+//           [id, date.getTime(), course, msg.author.id, "assignment", 0, note],
+//         ],
+//       },
+//     })
+//     .then((res) => {
+
+//     });
+// });
 
 bot.login(process.env.TOKEN);
