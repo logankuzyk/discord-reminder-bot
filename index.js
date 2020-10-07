@@ -80,7 +80,7 @@ bot.on("ready", () => {
       channel: channel[1],
     });
   }
-  bot.loadRange("A2:F");
+  bot.loadRange("A2:E");
 });
 
 bot.on("message", async (msg) => {
