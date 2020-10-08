@@ -29,18 +29,20 @@ bot.loadRange = (range) => {
       }
       for (let row of res.data.values) {
         let date = new Date(Number(row[1]));
-        if (row[4] == "reminder" && date.getTime() > Date.now()) {
-          let user = bot.users.cache.get(row[3]);
-          user.createDM().then((dmChannel) => {
-            bot.addJob(date, bot.commands.get("upcoming").execute, {
-              bot: bot,
-              channel: dmChannel,
-              course: row[2],
+        if (date.getTime() > Date.now()) {
+          if (row[4] == "reminder") {
+            let user = bot.users.cache.get(row[3]);
+            user.createDM().then((dmChannel) => {
+              bot.addJob(date, bot.commands.get("upcoming").execute, {
+                bot: bot,
+                channel: dmChannel,
+                course: row[2],
+              });
             });
-          });
-          console.log(`Added reminder on ${date.toString()}`);
+            console.log(`Added reminder on ${date.toString()}`);
+          }
+          console.log(`Added due date on ${date.toString()}`);
         }
-        console.log(`Added due date on ${date.toString()}`);
       }
     });
 };
@@ -104,20 +106,13 @@ bot.on("message", async (msg) => {
     groups: { command, input },
   } = /^\$(?<command>\w+)( )*(?<input>(.+) *)*$/g.exec(msg.content);
   try {
-    bot.commands.get(command).execute({ bot: bot, msg: msg, input: input });
-    // .catch((err) => {
-    //   if (err.name == "TypeError") {
-    //     console.log("Not a recognized command");
-    //     console.log(err);
-    //     msg.reply(
-    //       `That isn't a recognized command, type \`\`$help\`\` for a list of available commands.`
-    //     );
-    //     msg.react("😂");
-    //   } else {
-    //     console.log(err);
-    //     msg.reply(`Something went wrong. \`\`${err}\`\``);
-    //   }
-    // });
+    bot.commands
+      .get(command)
+      .execute({ bot: bot, msg: msg, input: input })
+      .catch((err) => {
+        console.log(err);
+        msg.reply(`Something went wrong. \`\`${err}\`\``);
+      });
   } catch (err) {
     if (err.name == "TypeError") {
       console.log("Not a recognized command");
@@ -130,6 +125,17 @@ bot.on("message", async (msg) => {
       console.log(err);
       msg.reply(`Something went wrong. \`\`${err}\`\``);
     }
+  }
+});
+
+bot.on("guildCreate", async (guild) => {
+  let channel = guild.channels.cache.find(
+    (channel) => channel.name == "bot-commands" && channel.type == "text"
+  );
+  if (channel) {
+    channel.send(
+      "I'm here to keep track of your assignments! To get started, type ``$help``!"
+    );
   }
 });
 

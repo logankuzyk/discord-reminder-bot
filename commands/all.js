@@ -13,10 +13,10 @@ const sheets = google.sheets({
   credentials: auth,
 });
 
-module.exports.about = "List the next 7 days of assignments.";
+module.exports.about = "List all assignments for a course.";
 
 module.exports.help =
-  "Example command: ``$upcoming`` \nGeneral form: ``$upcoming ([course])?``";
+  "Example command: ``$all`` \nGeneral form: ``$all ([course])?``";
 
 module.exports.execute = async ({ bot, msg, input, channel, course }) => {
   if (!course && msg) course = msg.channel.name;
@@ -30,7 +30,7 @@ module.exports.execute = async ({ bot, msg, input, channel, course }) => {
       );
     }
   }
-  let output = `Nothing is due in the next 7 days for ${course}! Or no one has added any due dates yet. Be the hero! Add some with \`\`$add\`\`.`;
+  let output = `Nothing is due in the next ${course}...ever! Or no one has added any due dates yet. Be the hero! Add some with \`\`$add\`\`.`;
   sheets.spreadsheets.values
     .get({
       spreadsheetId: process.env.SHEET_ID,
@@ -45,17 +45,13 @@ module.exports.execute = async ({ bot, msg, input, channel, course }) => {
         }
         return;
       }
-      let weekFromNow = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
       let assignments = res.data.values.filter(
         (row) =>
-          row[1] > Date.now() &&
-          row[1] < weekFromNow &&
-          row[4] == "assignment" &&
-          row[2] == course
+          row[1] > Date.now() && row[4] == "assignment" && row[2] == course
       );
       if (assignments.length > 0) {
         output = "";
-        output += `Here are the assignments due in the next 7 days for ${course}\n`;
+        output += `Here are all the assignments for ${course}\n`;
         for (let row of assignments) {
           output += `${row[6]} is due ${new Date(Number(row[1]))}\n`;
         }

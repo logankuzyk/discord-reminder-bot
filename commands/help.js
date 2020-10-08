@@ -5,7 +5,8 @@ module.exports.about = "List available commands.";
 module.exports.help = "Example command: ``$help``";
 
 module.exports.execute = async ({ bot, msg, input }) => {
-  let output = "";
+  let output =
+    "Remember, you only need to specify the course when you're in the bot-commands channel. When in a course channel, you can only interact with that course's due dates.";
   let files = fs.readdirSync(__dirname).filter((file) => file.endsWith(".js"));
   if (input) {
     msg.reply(bot.commands.get(input).help);
