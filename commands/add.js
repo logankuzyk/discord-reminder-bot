@@ -68,7 +68,16 @@ module.exports.execute = async ({ bot, msg, input }) => {
         resource: {
           range: "A2:A",
           values: [
-            [id, date.getTime(), course, msg.author.id, "assignment", 0, note],
+            [
+              id,
+              date.getTime(),
+              course,
+              msg.author.id,
+              "assignment",
+              1,
+              0,
+              note,
+            ],
           ],
         },
       })
