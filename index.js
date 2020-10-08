@@ -139,29 +139,68 @@ bot.on("guildCreate", async (guild) => {
   }
 });
 
-// bot.on("messageReactionAdd", async (reaction, user) => {
-//   try {
-//     await reaction.fetch();
-//   } catch (err) {
-//     console.log(`Something went wrong getting the message: ${err}`);
-//     return;
-//   }
-//   sheets.spreadsheets.values
-//     .append({
-//       spreadsheetId: process.env.SHEET_ID,
-//       valueInputOption: "RAW",
-//       insertDataOption: "INSERT_ROWS",
-//       range: "A2:A",
-//       resource: {
-//         range: "A2:A",
-//         values: [
-//           [id, date.getTime(), course, msg.author.id, "assignment", 0, note],
-//         ],
-//       },
-//     })
-//     .then((res) => {
-
-//     });
-// });
+bot.on("messageReactionAdd", async (reaction, user) => {
+  try {
+    await reaction.fetch();
+  } catch (err) {
+    console.log(`Something went wrong getting the message: ${err}`);
+    return;
+  }
+  if (reaction.emoji.name == "👍") {
+    sheets.spreadsheets.values
+      .get({
+        spreadsheetId: process.env.SHEET_ID,
+        range: "A2:G",
+      })
+      .then(async (res) => {
+        let cols = res.data.values;
+        let target = cols.filter((cell) => cell[0] == reaction.message.id)[0];
+        if (!target) {
+          return;
+        }
+        let score = Number(target[6]);
+        if (score < 3) {
+          score++;
+        }
+        let index = cols.indexOf(target);
+        let cell = `Sheet1!F${index + 2}:G${index + 2}`;
+        sheets.spreadsheets.values.update({
+          spreadsheetId: process.env.SHEET_ID,
+          range: cell,
+          valueInputOption: "RAW",
+          resource: {
+            values: [[1, score]],
+          },
+        });
+      });
+  } else if (reaction.emoji.name == "👎") {
+    sheets.spreadsheets.values
+      .get({
+        spreadsheetId: process.env.SHEET_ID,
+        range: "A2:G",
+      })
+      .then(async (res) => {
+        let cols = res.data.values;
+        let target = cols.filter((cell) => cell[0] == reaction.message.id)[0];
+        if (!target) {
+          return;
+        }
+        let score = Number(target[6]);
+        if (score > -3) {
+          score--;
+        }
+        let index = cols.indexOf(target);
+        let cell = `Sheet1!F${index + 2}:G${index + 2}`;
+        sheets.spreadsheets.values.update({
+          spreadsheetId: process.env.SHEET_ID,
+          range: cell,
+          valueInputOption: "RAW",
+          resource: {
+            values: [[1, score]],
+          },
+        });
+      });
+  }
+});
 
 bot.login(process.env.TOKEN);
