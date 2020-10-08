@@ -164,14 +164,16 @@ bot.on("messageReactionAdd", async (reaction, user) => {
         }
         let index = cols.indexOf(target);
         let cell = `Sheet1!F${index + 2}:G${index + 2}`;
-        sheets.spreadsheets.values.update({
-          spreadsheetId: process.env.SHEET_ID,
-          range: cell,
-          valueInputOption: "RAW",
-          resource: {
-            values: [[1, score]],
-          },
-        });
+        sheets.spreadsheets.values
+          .update({
+            spreadsheetId: process.env.SHEET_ID,
+            range: cell,
+            valueInputOption: "RAW",
+            resource: {
+              values: [[1, score]],
+            },
+          })
+          .then(console.log(`Upvoted ${target[0]}`));
       });
   } else if (reaction.emoji.name == "👎") {
     sheets.spreadsheets.values
@@ -191,14 +193,16 @@ bot.on("messageReactionAdd", async (reaction, user) => {
         }
         let index = cols.indexOf(target);
         let cell = `Sheet1!F${index + 2}:G${index + 2}`;
-        sheets.spreadsheets.values.update({
-          spreadsheetId: process.env.SHEET_ID,
-          range: cell,
-          valueInputOption: "RAW",
-          resource: {
-            values: [[1, score]],
-          },
-        });
+        sheets.spreadsheets.values
+          .update({
+            spreadsheetId: process.env.SHEET_ID,
+            range: cell,
+            valueInputOption: "RAW",
+            resource: {
+              values: [[1, score]],
+            },
+          })
+          .then(console.log(`Downvoted ${target[0]}`));
       });
   }
 });
