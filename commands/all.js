@@ -51,7 +51,7 @@ module.exports.execute = async ({ bot, msg, input, channel, course }) => {
       );
       if (assignments.length > 0) {
         output = "";
-        output += `Here all the assignments for ${course}\n`;
+        output += `Here are all the assignments for ${course}\n`;
         for (let row of assignments) {
           output += `${row[6]} is due ${new Date(Number(row[1]))}\n`;
         }
