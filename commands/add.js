@@ -1,5 +1,4 @@
 const { google } = require("googleapis");
-const randomstring = require("randomstring");
 
 const auth = new google.auth.GoogleAuth({
   keyFile: process.env.GOOGLE_APPLICATION_CREDENTIALS,
@@ -54,29 +53,36 @@ module.exports.execute = async ({ bot, msg, input }) => {
       throw new Error("Date is invalid or not present");
     if (msg.createdTimestamp > date.getTime())
       throw new Error("Can't add past assignment");
-    let id = await randomstring.generate({
-      length: 6,
-      readable: true,
-      charset: "alphabetic",
-    });
-    sheets.spreadsheets.values
-      .append({
-        spreadsheetId: process.env.SHEET_ID,
-        valueInputOption: "RAW",
-        insertDataOption: "INSERT_ROWS",
-        range: "A2:A",
-        resource: {
-          range: "A2:A",
-          values: [
-            [id, date.getTime(), course, msg.author.id, "assignment", 0, note],
-          ],
-        },
-      })
-      .then((res) => {
-        msg.reply(
-          `Due date added! ${note} is due at ${date.toString()} for ${course}. \nTo set a reminder, use \`\`$remind\`\` followed by the date and time to be reminded. \nReact with a 👍 if the due date is accurate; 👎 if it isn't. \nThis assignment's unique ID is \`\`${id}\`\``
-        );
-        return bot.loadRange(res.data.updates.updatedRange);
+    msg
+      .reply(
+        `Due date added! ${note} is due at ${date.toString()} for ${course}. \nTo set a reminder for this class, use \`\`$remind\`\` followed by the date and time to be reminded. \nReact with a 👍 if the due date is accurate; 👎 if it isn't.`
+      )
+      .then((reply) => {
+        sheets.spreadsheets.values
+          .append({
+            spreadsheetId: process.env.SHEET_ID,
+            valueInputOption: "RAW",
+            insertDataOption: "INSERT_ROWS",
+            range: "A2:A",
+            resource: {
+              range: "A2:A",
+              values: [
+                [
+                  reply.id,
+                  date.getTime(),
+                  course,
+                  msg.author.id,
+                  "assignment",
+                  1,
+                  0,
+                  note,
+                ],
+              ],
+            },
+          })
+          .then((res) => {
+            return bot.loadRange(res.data.updates.updatedRange);
+          });
       });
   } catch (err) {
     if (err.name == "TypeError") {

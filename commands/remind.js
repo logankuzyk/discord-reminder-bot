@@ -1,5 +1,4 @@
 const { google } = require("googleapis");
-const randomstring = require("randomstring");
 
 const auth = new google.auth.GoogleAuth({
   keyFile: process.env.GOOGLE_APPLICATION_CREDENTIALS,
@@ -56,30 +55,34 @@ module.exports.execute = async ({ bot, msg, input }) => {
       throw new Error("Date is invalid or not present");
     if (msg.createdTimestamp > date.getTime())
       throw new Error("Can't change history");
-    let id = await randomstring.generate({
-      length: 6,
-      readable: true,
-      charset: "alphabetic",
-    });
-    sheets.spreadsheets.values
-      .append({
-        spreadsheetId: process.env.SHEET_ID,
-        valueInputOption: "RAW",
-        insertDataOption: "INSERT_ROWS",
-        range: "A2:A",
-        resource: {
-          range: "A2:A",
-          values: [[id, date.getTime(), course, msg.author.id, "reminder"]],
-        },
-      })
-      .then((res) => {
-        msg.reply(
-          `Reminder added! I will send you a PM with ${course}'s upcoming due dates at ${date.toString()}. \nThis reminder's unique ID is \`\`${id}\`\``
-        );
-        return bot.loadRange(res.data.updates.updatedRange);
-      })
-      .catch((err) => {
-        throw new Error(`Something went wrong with Google Sheets ${err}`);
+    msg
+      .reply(
+        `Reminder added! I will send you a PM with ${course}'s upcoming due dates at ${date.toString()}.`
+      )
+      .then((reply) => {
+        sheets.spreadsheets.values
+          .append({
+            spreadsheetId: process.env.SHEET_ID,
+            valueInputOption: "RAW",
+            insertDataOption: "INSERT_ROWS",
+            range: "A2:A",
+            resource: {
+              range: "A2:A",
+              values: [
+                [
+                  reply.id,
+                  date.getTime(),
+                  course,
+                  msg.author.id,
+                  "reminder",
+                  1,
+                ],
+              ],
+            },
+          })
+          .then((res) => {
+            return bot.loadRange(res.data.updates.updatedRange);
+          });
       });
   } catch (err) {
     if (err.name == "TypeError") {
