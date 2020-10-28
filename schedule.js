@@ -13,6 +13,7 @@ class Schedule {
     if (task instanceof Map) {
       return task.forEach(this.addJob);
     }
+    // Execution defaults to everyday at midnight. This is for the daily class reminders.
     let executeDate = "0 0 0 * * *";
     if (task.executeDate) {
       executeDate = new Date(Number(task.executeDate));
