@@ -1,8 +1,8 @@
 const Discord = require("discord.js");
 const fs = require("fs");
 const dotenv = require("dotenv").config();
-const Storage = require("./storage");
-const Schedule = require("./schedule");
+const Storage = require("./bin/storage");
+const Schedule = require("./bin/schedule");
 
 const bot = new Discord.Client();
 
@@ -11,11 +11,11 @@ bot.on("ready", () => {
     try {
       let commands = new Map();
       let files = fs
-        .readdirSync("./commands/")
+        .readdirSync("./bin/commands/")
         .filter((file) => file.endsWith(".js"));
       for (let file of files) {
         let command = file.substring(0, file.indexOf("."));
-        let module = require(`./commands/${command}`);
+        let module = require(`./bin/commands/${command}`);
         commands.set(file.substring(0, file.indexOf(".")), module);
         console.log(`Loaded ${file}`);
       }

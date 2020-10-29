@@ -1,5 +1,5 @@
 const cron = require("cron");
-const index = require("./index");
+const index = require("./../index");
 
 class Schedule {
   constructor(tasks) {
