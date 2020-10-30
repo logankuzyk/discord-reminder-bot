@@ -24,9 +24,9 @@ bot.on("ready", () => {
       reject(err);
     }
   }).then((commands) => {
+    // Export commands after loading.
     module.exports.commands = commands;
     bot.commands = commands;
-    // console.log(module.exports);
     const storage = new Storage();
     const schedule = new Schedule();
     storage.tasks.then(schedule.addJob);
