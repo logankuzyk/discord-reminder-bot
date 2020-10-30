@@ -1,6 +1,7 @@
 const Discord = require("discord.js");
 const fs = require("fs");
 const dotenv = require("dotenv").config();
+const regex = require("./bin/regex");
 const Storage = require("./bin/storage");
 const Schedule = require("./bin/schedule");
 
@@ -32,8 +33,7 @@ bot.on("ready", () => {
     storage.tasks.then(schedule.addJob);
     let channels = bot.channels.cache.filter(
       (channel) =>
-        channel.type == "text" &&
-        channel.name.match(/^([a-z]{3,4})-([0-9]{2})\w$/g)
+        channel.type == "text" && channel.name.match(regex.get("course"))
     );
     for (let channel of channels) {
       schedule.addJob({
@@ -52,7 +52,7 @@ bot.on("message", async (msg) => {
   ) {
     return;
   } else if (
-    !msg.channel.name.match(/^([a-z]{3,4})-([0-9]{2})\w$/g) &&
+    !msg.channel.name.match(regex.get("course")) &&
     msg.channel.name != "bot-commands"
   ) {
     console.log("Summoned in non-class channel");
@@ -62,15 +62,16 @@ bot.on("message", async (msg) => {
   console.log(`Command received: ${msg.content}`);
   let {
     groups: { command, input },
-  } = /^\$(?<command>\w+)( )*(?<input>(.+) *)*$/g.exec(msg.content);
+  } = regex.get("command").exec(msg.content);
+  console.log(command);
+  console.log(input);
   try {
     console.log(bot.commands);
     bot.commands
       .get(command)
-      .execute({ bot: bot, msg: msg, input: input })
+      .execute(input)
       .catch((err) => {
-        console.log(err);
-        msg.reply(`Something went wrong. \`\`${err}\`\``);
+        throw new Error(err); // This error does not get caught by the catch statement below.
       });
   } catch (err) {
     if (err.name == "TypeError") {
@@ -88,6 +89,7 @@ bot.on("message", async (msg) => {
 });
 
 bot.on("guildCreate", async (guild) => {
+  // Sends greeting to bot-commands text channel on joining.
   let channel = guild.channels.cache.find(
     (channel) => channel.name == "bot-commands" && channel.type == "text"
   );
@@ -95,74 +97,6 @@ bot.on("guildCreate", async (guild) => {
     channel.send(
       "I'm here to keep track of your assignments! To get started, type ``$help``!"
     );
-  }
-});
-
-bot.on("messageReactionAdd", async (reaction, user) => {
-  try {
-    await reaction.fetch();
-  } catch (err) {
-    console.log(`Something went wrong getting the message: ${err}`);
-    return;
-  }
-  if (reaction.emoji.name == "👍") {
-    sheets.spreadsheets.values
-      .get({
-        spreadsheetId: process.env.SHEET_ID,
-        range: "A2:G",
-      })
-      .then(async (res) => {
-        let cols = res.data.values;
-        let target = cols.filter((cell) => cell[0] == reaction.message.id)[0];
-        if (!target) {
-          return;
-        }
-        let score = Number(target[6]);
-        if (score < 3) {
-          score++;
-        }
-        let index = cols.indexOf(target);
-        let cell = `Sheet1!F${index + 2}:G${index + 2}`;
-        sheets.spreadsheets.values
-          .update({
-            spreadsheetId: process.env.SHEET_ID,
-            range: cell,
-            valueInputOption: "RAW",
-            resource: {
-              values: [[1, score]],
-            },
-          })
-          .then(console.log(`Upvoted ${target[0]}`));
-      });
-  } else if (reaction.emoji.name == "👎") {
-    sheets.spreadsheets.values
-      .get({
-        spreadsheetId: process.env.SHEET_ID,
-        range: "A2:G",
-      })
-      .then(async (res) => {
-        let cols = res.data.values;
-        let target = cols.filter((cell) => cell[0] == reaction.message.id)[0];
-        if (!target) {
-          return;
-        }
-        let score = Number(target[6]);
-        if (score > -3) {
-          score--;
-        }
-        let index = cols.indexOf(target);
-        let cell = `Sheet1!F${index + 2}:G${index + 2}`;
-        sheets.spreadsheets.values
-          .update({
-            spreadsheetId: process.env.SHEET_ID,
-            range: cell,
-            valueInputOption: "RAW",
-            resource: {
-              values: [[1, score]],
-            },
-          })
-          .then(console.log(`Downvoted ${target[0]}`));
-      });
   }
 });
 
