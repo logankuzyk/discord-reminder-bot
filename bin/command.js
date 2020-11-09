@@ -3,6 +3,6 @@ module.exports = class Command {
     this.about = "";
     this.help = "";
     this.params = [];
-    this.execute = () => {};
+    this.execute = async () => {};
   }
 };
