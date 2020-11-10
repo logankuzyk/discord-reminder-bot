@@ -4,9 +4,7 @@ const fs = require("fs");
 const help = new Command();
 
 help.about = "List available commands.";
-
 help.help = "Example command: ``$help``";
-
 help.params = [];
 
 help.execute = async () => {
