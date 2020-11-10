@@ -1,12 +1,12 @@
 module.exports = new Map([
-  ["course", /^(?<course>([(a-z]{3,4}-([0-9]{2})\w$))/g],
-  ["command", /^\$(?<command>\w+)( )*(?<input>(.+) *)*$/g],
+  ["course", /^(?<course>([(a-z]{3,4}-([0-9]{2})\w$))/],
+  ["command", /^\$(?<command>\w+)/],
   [
     "dueDate",
-    /^(?<note>(\w( )*)+) on (?<date>\S+)( at ((?<hour>\d{1,2})(:(?<minute>\d{2}))*(?<timeSuffix>[a-z]{2})*))*( for (?<course>([(a-z]{3,4}-([0-9]{2})\w$)))*$/g,
+    /^(?<note>(\w( )*)+) on (?<date>\S+)( at ((?<hour>\d{1,2})(:(?<minute>\d{2}))*(?<timeSuffix>[a-z]{2})*))*( for (?<course>([(a-z]{3,4}-([0-9]{2})\w$)))*$/,
   ],
   [
     "reminder",
-    /^(?<date>\S+)( at ((?<hour>\d{1,2})(:(?<minute>\d{2}))*(?<timeSuffix>[a-z]{2})*))*( for (?<course>([(a-z]{3,4}-([0-9]{2})\w$)))*$/g,
+    /^(?<date>\S+)( at ((?<hour>\d{1,2})(:(?<minute>\d{2}))*(?<timeSuffix>[a-z]{2})*))*( for (?<course>([(a-z]{3,4}-([0-9]{2})\w$)))*$/,
   ],
 ]);
