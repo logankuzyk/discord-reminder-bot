@@ -26,6 +26,7 @@ help.execute = async () => {
   return {
     embed: { title: "Assignment Reminder's Commands", description: body },
     complete: true,
+    params: null,
   };
 };
 
