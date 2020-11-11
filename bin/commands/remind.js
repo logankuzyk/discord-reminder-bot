@@ -65,6 +65,7 @@ remind.execute = async (user, tokens) => {
   let body;
   let complete;
   let taskTime;
+  let task;
   if (nextParam) {
     body = prompts.get(nextParam);
     complete = false;
@@ -97,6 +98,13 @@ remind.execute = async (user, tokens) => {
       throw new Error("Date is invalid or not present");
     if (Date.now() > taskTime.getTime())
       throw new Error("Can't change history");
+    task = {
+      executeDate: taskTime.getTime(),
+      courseName: givenParams.courseName,
+      taskType: "reminder",
+      isActive: 1,
+      score: 1,
+    };
     body = `Reminder added! I will send you a PM with ${
       givenParams.courseName
     }'s due dates on ${taskTime.toString()}`;
@@ -108,7 +116,7 @@ remind.execute = async (user, tokens) => {
     givenParams: JSON.stringify(givenParams),
     remainingParams: remainingParams,
     nextParam: nextParam,
-    taskTime: taskTime,
+    task: task,
   };
 };
 
