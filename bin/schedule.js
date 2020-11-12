@@ -1,3 +1,4 @@
+const Discord = require("discord.js");
 const cron = require("cron");
 const index = require("./../index");
 
@@ -9,7 +10,7 @@ class Schedule {
     }
   }
 
-  addJob = (task) => {
+  addJob = async (task) => {
     if (task instanceof Map) {
       return task.forEach(this.addJob);
     }
@@ -17,24 +18,26 @@ class Schedule {
     let executeDate = "0 0 0 * * *";
     if (task.executeDate) {
       executeDate = new Date(Number(task.executeDate));
-      console.log(executeDate);
-      if (task.isActive == 1 && executeDate.getTime() < Date.now())
-        throw new Error("Date already passed. What's done is done, bud");
+      if (executeDate.getTime() - Date.now() < 0) return;
     }
     let command = index.commands.get("upcoming").execute;
 
     let job = new cron.CronJob(
       executeDate,
       () => {
-        //Will add parameters when command parameters are improved/standardized.
-        command();
+        command(null, [task.courseName]).then((context) => {
+          let channel = index.channels.cache.get(task.channelId);
+          let embed = new Discord.MessageEmbed(context.embed);
+          channel.send(embed);
+        });
       },
       null,
-      true,
+      false, // Job needs to be started with .start()
       "America/Los_Angeles"
     );
-    return;
+    return job;
   };
 }
 
+// Circular dependency, node things
 module.exports = Schedule;
