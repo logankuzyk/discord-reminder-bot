@@ -1,73 +1,67 @@
-const dotenv = require("dotenv").config();
-const { google } = require("googleapis");
+const Command = require("../command");
+const index = require("../../index");
+const regex = require("../regex");
+const fs = require("fs");
+const { resolve } = require("path");
 
-const auth = new google.auth.GoogleAuth({
-  keyFile: process.env.GOOGLE_APPLICATION_CREDENTIALS,
-  scopes: ["https://www.googleapis.com/auth/spreadsheets"],
-});
-google.options({
-  auth: auth,
-});
-const sheets = google.sheets({
-  version: "v4",
-  credentials: auth,
-});
+const upcoming = new Command();
 
-module.exports.about = "List the next 7 days of assignments.";
+upcoming.about = "List available commands.";
+upcoming.help = "Example command: ``$help``";
+upcoming.params = ["courseName"];
 
-module.exports.help =
-  "Example command: ``$upcoming`` \nGeneral form: ``$upcoming ([course])?``";
-
-module.exports.execute = async ({ bot, msg, input, channel, course }) => {
-  if (!course && msg) course = msg.channel.name;
-  else if (!course && channel) course = channel.name;
-  if (course == "bot-commands") {
-    if (/^(?<course>([(a-z]{3,4}-([0-9]{2})\w$))/g.exec(input)) {
-      course = /^(?<course>([(a-z]{3,4}-([0-9]{2})\w$))/g.exec(input)[0];
+upcoming.execute = async (user, tokens) => {
+  let courseName = new Promise((resolve, reject) => {
+    console.log("Looking for courseName");
+    let courseName = tokens.filter(
+      (token) => regex.get("course").exec(token) !== null
+    );
+    if (courseName) {
+      console.log(`Found courseName ${courseName}`);
+      resolve(...courseName);
     } else {
-      throw new Error(
-        "You need to specify the course when using the bot-commands channel."
-      );
+      reject();
     }
-  }
-  let output = `Nothing is due in the next 7 days for ${course}! Or no one has added any due dates yet. Be the hero! Add some with \`\`$add\`\`.`;
-  sheets.spreadsheets.values
-    .get({
-      spreadsheetId: process.env.SHEET_ID,
-      range: "A2:H",
-    })
-    .then((res) => {
-      if (!res.data.values) {
-        if (msg) {
-          msg.reply(output);
-        } else if (channel) {
-          channel.send(output);
-        }
+  });
+  let body = new Promise((resolve, reject) => {
+    let body;
+    index.storage.getAllTasks().then((tasks) => {
+      if (tasks.size == 0) {
+        console.log("No due dates added");
+        body =
+          "Nothing is due, or no one has added any due dates for this class.";
+        resolve(body);
         return;
       }
-      let weekFromNow = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-      let assignments = res.data.values.filter(
-        (row) =>
-          row[1] > Date.now() &&
-          row[1] < weekFromNow &&
-          row[4] == "assignment" &&
-          row[2] == course
-      );
-      if (assignments.length > 0) {
-        output = "";
-        output += `Here are the assignments due in the next 7 days for ${course}\n`;
-        for (let row of assignments) {
-          output += `${row[7]} is due ${new Date(Number(row[1]))} Score: ${
-            row[6]
-          }\n`;
+      let courseTasks = [];
+      for (let task of tasks) {
+        if (
+          task.courseName == courseName &&
+          task.taskType == "assignment" &&
+          Number(task.executeDate) - Date.getTime() > 0
+        ) {
+          courseTasks.push(task);
         }
       }
-      console.log(output);
-      if (msg) {
-        msg.reply(output);
-      } else if (channel) {
-        channel.send(output);
+      if (courseTasks.length == 0) {
+        console.log("No due dates added");
+        body =
+          "Nothing is due, or no one has added any due dates for this class.";
+        resolve(body);
+        return;
       }
+      for (let task of courseTasks) {
+        body += `${task.memo} is due on ${Date(Number(task.executeDate))}\n`;
+      }
+      resolve(`\`\`\`${body}\`\`\``);
     });
-  return;
+  });
+  console.log(await body);
+  return {
+    embed: { title: "Upcoming Due Dates", description: await body },
+    complete: true,
+    params: null,
+  };
 };
+
+module.exports = upcoming;
