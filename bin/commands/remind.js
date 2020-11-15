@@ -33,7 +33,6 @@ remind.execute = async (user, tokens) => {
   }
   let body;
   let complete;
-  let taskTime;
   let task;
   if (nextParam) {
     body = prompts.get(nextParam);
