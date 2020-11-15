@@ -16,7 +16,6 @@ remind.execute = async (user, tokens) => {
   let remainingParams = [];
   if (user && user.ongoingCommand != "null") {
     let params = await paramGetter(user, tokens);
-    console.log(params);
     nextParam = params.nextParam;
     givenParams = params.givenParams;
     remainingParams = params.remainingParams;
