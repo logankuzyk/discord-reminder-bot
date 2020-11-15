@@ -9,13 +9,13 @@ paramGetter = async (user, tokens) => {
   console.log(`Given: ${givenParams}`);
   console.log(`Looking for ${nextParam}`);
 
-  let param = checks.get(nextParam)(tokens);
+  let param = checks.get(nextParam)(tokens, givenParams);
   if (param) {
     console.log(`Found ${nextParam}, ${param}`);
-    remainingParams = remainingParams.splice(
-      remainingParams.indexOf(nextParam),
-      1
-    );
+    console.log(remainingParams.indexOf(nextParam));
+    console.log(remainingParams);
+    remainingParams.splice(remainingParams.indexOf(nextParam), 1);
+    console.log(remainingParams);
     givenParams[nextParam] = param;
     nextParam = remainingParams[0];
     return {
@@ -56,13 +56,35 @@ const checks = new Map([
   ],
   [
     "time",
-    (tokens) => {
+    (tokens, givenParams) => {
       let output = tokens.filter(
         (token) => regex.get("time").exec(token) !== null
       );
       if (output.length > 0) {
-        let time = regex.get("time").exec(time).groups;
-        return time;
+        console.log(output);
+        let time = regex.get("time").exec(...output).groups;
+        let taskTime = givenParams.date;
+        console.log(time);
+        if (time.hour && time.timeSuffix) {
+          if (time.timeSuffix.toLowerCase() == "pm" && time.hour != 12) {
+            time.hour += 12;
+          }
+        } else if (time.hour == 24) {
+          time.hour = 0;
+        }
+        if (time.hour && time.minute) {
+          taskTime += ` ${time.hour}:${time.minute}`;
+        } else if (time.hour) {
+          taskTime += ` ${time.hour}:00`;
+        } else {
+          taskTime += ` 00:00`;
+        }
+        taskTime = new Date(taskTime);
+        if (taskTime == "Invalid Date")
+          throw new Error("Date is invalid or not present");
+        if (Date.now() > taskTime.getTime())
+          throw new Error("Can't change history");
+        return taskTime;
       } else {
         return null;
       }
