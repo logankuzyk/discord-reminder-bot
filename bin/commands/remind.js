@@ -1,6 +1,7 @@
 const Command = require("../command");
 const regex = require("../regex");
 const prompts = require("../prompts");
+const paramGetter = require("../paramGetter");
 
 const remind = new Command();
 
@@ -14,42 +15,11 @@ remind.execute = async (user, tokens) => {
   let givenParams = {};
   let remainingParams = [];
   if (user && user.ongoingCommand != "null") {
-    givenParams = user.givenParams;
-    remainingParams = new Array(...user.remainingParams);
-    console.log(`Remaining: ${remainingParams}`);
-    console.log(`Given: ${givenParams}`);
-    console.log(`Looking for ${user.nextParam}`);
-    if (user.nextParam == "courseName") {
-      let courseName = tokens.filter(
-        (token) => regex.get("course").exec(token) !== null
-      );
-      if (courseName) {
-        console.log(`Found courseName ${courseName}`);
-        [givenParams.courseName] = courseName;
-        remainingParams.splice(remainingParams.indexOf("courseName"), 1);
-        nextParam = remainingParams[0];
-      }
-    } else if (user.nextParam == "date") {
-      tokens = tokens.filter((token) => regex.get("date").exec(token));
-      let date = tokens.filter((token) => new Date(token) != "Invalid Date");
-      if (date.length > 0) {
-        // console.log(date);
-        console.log(`Found date ${date}`);
-        [givenParams.date] = date;
-        remainingParams.splice(remainingParams.indexOf("date"), 1);
-        nextParam = remainingParams[0];
-      }
-    } else if (user.nextParam == "time") {
-      let time = tokens.filter(
-        (token) => regex.get("time").exec(token).groups.hour
-      );
-      if (time) {
-        console.log(`Found time ${time}`);
-        givenParams.time = regex.get("time").exec(time).groups;
-        remainingParams.splice(remainingParams.indexOf("time"), 1);
-        nextParam = remainingParams[0];
-      }
-    }
+    let params = await paramGetter(user, tokens);
+    console.log(params);
+    nextParam = params.nextParam;
+    givenParams = params.givenParams;
+    remainingParams = params.remainingParams;
   } else {
     // Entry point of command, user has not interacted with bot before.
     remainingParams = new Array(...remind.params);
@@ -71,35 +41,8 @@ remind.execute = async (user, tokens) => {
     complete = false;
   } else {
     // Routine on completion
-    // Time parsing
-    taskTime = givenParams.date;
-    givenParams.time.hour = Number(givenParams.time.hour);
-    givenParams.time.minute = Number(givenParams.time.minute);
-    if (givenParams.time.hour && givenParams.time.timeSuffix) {
-      if (
-        givenParams.time.timeSuffix.toLowerCase() == "pm" &&
-        givenParams.time.hour != 12
-      ) {
-        givenParams.time.hour += 12;
-      }
-    } else if (givenParams.time.hour == 24) {
-      givenParams.time.hour = 0;
-    }
-    if (givenParams.time.hour && givenParams.time.minute) {
-      taskTime += ` ${givenParams.time.hour}:${givenParams.time.minute}`;
-    } else if (givenParams.time.hour) {
-      taskTime += ` ${givenParams.time.hour}:00`;
-    } else {
-      taskTime += ` 00:00`;
-    }
-    console.log(taskTime);
-    taskTime = new Date(taskTime);
-    if (taskTime == "Invalid Date")
-      throw new Error("Date is invalid or not present");
-    if (Date.now() > taskTime.getTime())
-      throw new Error("Can't change history");
     task = {
-      executeDate: taskTime.getTime(),
+      executeDate: givenParams.time.getTime(),
       courseName: givenParams.courseName,
       taskType: "reminder",
       isActive: 1,
@@ -107,7 +50,7 @@ remind.execute = async (user, tokens) => {
     };
     body = `Reminder added! I will send you a PM with ${
       givenParams.courseName
-    }'s due dates on ${taskTime.toString()}`;
+    }'s due dates on ${givenParams.time.toString()}`;
     complete = true;
   }
   return {
