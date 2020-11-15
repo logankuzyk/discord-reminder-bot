@@ -1,4 +1,4 @@
-const regex = require("regex");
+const regex = require("./regex");
 
 paramGetter = async (user, tokens) => {
   let nextParam = user.nextParam;
