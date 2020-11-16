@@ -88,7 +88,13 @@ const checks = new Map([
   [
     "memo",
     (tokens) => {
-      return "need to figure out how to validate memos";
+      let output;
+      for (let i in tokens) {
+        if (i != 0) {
+          output += tokens[i] + " ";
+        }
+      }
+      return output;
     },
   ],
 ]);
