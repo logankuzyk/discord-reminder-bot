@@ -11,4 +11,8 @@ module.exports = new Map([
     "time",
     'Okay, what time do you want to be reminded on that day? Respond in the format $HH:MM for 24 hour format, or $HH:MMpm for 12 hour format. You need to start the message with "$" for the bot to see it.',
   ],
+  [
+    "memo",
+    'Okay, what is the memo for the due date? Make it something helpful like the name of the assignment or test. You need to start the message with "$" for the bot to see it.',
+  ],
 ]);
