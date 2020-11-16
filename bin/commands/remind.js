@@ -39,6 +39,7 @@ remind.execute = async (user, tokens) => {
     complete = false;
   } else {
     // Routine on completion
+    givenParams.time = new Date(givenParams.time);
     task = {
       executeDate: givenParams.time.getTime(),
       courseName: givenParams.courseName,
