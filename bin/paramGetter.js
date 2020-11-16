@@ -88,7 +88,7 @@ const checks = new Map([
   [
     "memo",
     (tokens) => {
-      let output;
+      let output = "";
       for (let i in tokens) {
         if (i != 0) {
           output += tokens[i] + " ";
