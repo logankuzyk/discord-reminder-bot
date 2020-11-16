@@ -21,7 +21,7 @@ paramGetter = async (user, tokens) => {
       remainingParams: remainingParams,
     };
   } else {
-    console.log(`Did not find ${param}, will prompt again`);
+    console.log(`Did not find ${nextParam}, will prompt again`);
   }
 };
 
