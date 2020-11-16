@@ -12,10 +12,7 @@ paramGetter = async (user, tokens) => {
   let param = checks.get(nextParam)(tokens, givenParams);
   if (param) {
     console.log(`Found ${nextParam}, ${param}`);
-    console.log(remainingParams.indexOf(nextParam));
-    console.log(remainingParams);
     remainingParams.splice(remainingParams.indexOf(nextParam), 1);
-    console.log(remainingParams);
     givenParams[nextParam] = param;
     nextParam = remainingParams[0];
     return {
@@ -61,10 +58,8 @@ const checks = new Map([
         (token) => regex.get("time").exec(token) !== null
       );
       if (output.length > 0) {
-        console.log(output);
         let time = regex.get("time").exec(...output).groups;
         let taskTime = givenParams.date;
-        console.log(time);
         if (time.hour && time.timeSuffix) {
           if (time.timeSuffix.toLowerCase() == "pm" && time.hour != 12) {
             time.hour += 12;
