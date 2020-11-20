@@ -1,3 +1,4 @@
+const { timeout } = require("cron");
 const regex = require("./regex");
 
 paramGetter = async (user, tokens) => {
@@ -59,6 +60,8 @@ const checks = new Map([
       );
       if (output.length > 0) {
         let time = regex.get("time").exec(...output).groups;
+        time.hour = Number(time.hour);
+        time.minute = Number(time.minute);
         let taskTime = givenParams.date;
         if (time.hour && time.timeSuffix) {
           if (time.timeSuffix.toLowerCase() == "pm" && time.hour != 12) {
