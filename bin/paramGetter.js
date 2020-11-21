@@ -46,6 +46,8 @@ const checks = new Map([
       tokens = tokens.filter((token) => regex.get("date").exec(token));
       let output = tokens.filter((token) => new Date(token) != "Invalid Date");
       if (output.length > 0) {
+        let taskTime = new Date(output[0]);
+        if (taskTime == "Invalid Date") throw new Error("Can't change history");
         return output[0];
       } else {
         return null;
@@ -77,7 +79,9 @@ const checks = new Map([
         } else {
           taskTime += ` 00:00`;
         }
+        console.log(taskTime);
         taskTime = new Date(taskTime);
+        console.log(taskTime);
         if (taskTime == "Invalid Date")
           throw new Error("Date is invalid or not present");
         if (Date.now() > taskTime.getTime())
