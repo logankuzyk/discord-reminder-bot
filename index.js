@@ -4,6 +4,7 @@ const dotenv = require("dotenv").config();
 const regex = require("./bin/regex");
 const Storage = require("./bin/storage");
 const Schedule = require("./bin/schedule");
+// const { storage } = require("googleapis/build/src/apis/storage");
 
 const bot = new Discord.Client();
 
@@ -30,7 +31,16 @@ bot.on("ready", () => {
     bot.commands = commands;
     const storage = new Storage();
     const schedule = new Schedule();
-    storage.tasks.then(schedule.addJob);
+    bot.storage = storage;
+    bot.schedule = schedule;
+    module.exports.storage = bot.storage;
+    module.exports.channels = bot.channels;
+    bot.storage.getAllTasks().then(schedule.addJob);
+    bot.storage.getAllUsers().then((users) => {
+      users.forEach((user) => {
+        bot.storage.resetUser(user.userId);
+      });
+    });
     let channels = bot.channels.cache.filter(
       (channel) =>
         channel.type == "text" && channel.name.match(regex.get("course"))
@@ -56,31 +66,110 @@ bot.on("message", async (msg) => {
     msg.channel.name != "bot-commands"
   ) {
     console.log("Summoned in non-class channel");
-    msg.reply("This channel doesn't correspond with a class.");
+    msg.reply(
+      "This channel doesn't correspond with a course. Use the course channel or #bot-commands"
+    );
     return;
   }
   console.log(`Command received: ${msg.content}`);
-  let {
-    groups: { command, input },
-  } = regex.get("command").exec(msg.content);
-  console.log(command);
-  console.log(input);
+  let user = await bot.storage.getUser(msg.author.id);
+  let command = new Promise((resolve, reject) => {
+    if (user) {
+      if (user.ongoingCommand != "null") {
+        console.log("Ongoing command");
+        resolve(user.ongoingCommand);
+      } else if (regex.get("command").exec(msg.content) != null) {
+        if (
+          bot.commands.has(
+            regex.get("command").exec(msg.content).groups.command
+          )
+        ) {
+          console.log("Cached user, running new command");
+          resolve(regex.get("command").exec(msg.content).groups.command);
+        } else {
+          reject();
+        }
+      } else {
+        reject();
+      }
+    } else if (regex.get("command").exec(msg.content) != null) {
+      if (
+        bot.commands.has(regex.get("command").exec(msg.content).groups.command)
+      ) {
+        console.log("New user, running command");
+        resolve(regex.get("command").exec(msg.content).groups.command);
+      } else {
+        reject();
+      }
+    } else {
+      reject();
+    }
+  }).catch(() => {
+    console.log("Not a recognized command");
+    let embed = new Discord.MessageEmbed({
+      title: "Oops!",
+      description: `That command isn't recognized. Try \`\`$help\`\` if you're stuck.`,
+    });
+    msg.channel.send(embed);
+    // This runs the cancel command without having "cancel" in the tokens, which means it doesn't reply with an embed. Because complete = true, this resets the user.
+    return "cancel";
+  });
+  let tokens = [];
+  let word;
+  while ((word = regex.get("token").exec(msg.content)) !== null) {
+    tokens.push(word.groups.token);
+  }
+  tokens.unshift(msg.channel.name);
+  tokens.splice(2, tokens.length - 2);
+  // This deletes any extra words from the command call.
+  // As of right now, all commands only require one token (other than courseName) to be run.
+  // Yes this is a security feature.
+  console.log(`Command: ${await command}`);
+  console.log(`Tokens: ${tokens}`);
   try {
-    console.log(bot.commands);
-    bot.commands
-      .get(command)
-      .execute(input)
-      .catch((err) => {
-        throw new Error(err); // This error does not get caught by the catch statement below.
+    let context = await bot.commands.get(await command).execute(user, tokens);
+    if (context.embed) {
+      let output = new Discord.MessageEmbed(context.embed);
+      msg.channel.send(output).then(() => {
+        console.log("Replied with embed");
       });
+    }
+    if (!context.complete) {
+      bot.storage.addUser(
+        msg.author.id,
+        msg.author.username,
+        await command,
+        context.givenParams,
+        context.nextParam,
+        context.remainingParams
+      );
+    } else if (context.task) {
+      let task = context.task;
+      task.taskId = msg.id;
+      // Didn't need to make this a promise, but I did.
+      task.channelId = await new Promise((resolve, reject) => {
+        if (task.taskType == "assignment") {
+          resolve(msg.channel.id);
+        } else if (task.taskType == "reminder") {
+          msg.author.createDM().then((dmChannel) => {
+            console.log(dmChannel);
+            resolve(dmChannel.id);
+          });
+        }
+      });
+      task.authorId = msg.author.id;
+      bot.schedule.addJob(task).then((job) => {
+        job.start();
+      });
+      bot.storage.addTask(task);
+      bot.storage.resetUser(Number(msg.author.id));
+    } else if (context.complete) {
+      bot.storage.resetUser(Number(msg.author.id));
+    }
   } catch (err) {
     if (err.name == "TypeError") {
-      console.log("Not a recognized command");
+      bot.storage.resetUser(Number(msg.author.id));
       console.log(err);
-      msg.reply(
-        `That isn't a recognized command, type \`\`$help\`\` for a list of available commands.`
-      );
-      msg.react("😂");
     } else {
       console.log(err);
       msg.reply(`Something went wrong. \`\`${err}\`\``);
