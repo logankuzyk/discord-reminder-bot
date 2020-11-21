@@ -130,6 +130,26 @@ class Storage {
     return output;
   };
 
+  getAllUsers = async () => {
+    let output = new Map();
+    await sheets.spreadsheets.values
+      .get({
+        spreadsheetId: this.sheetId,
+        range: this.pages.get("users"),
+      })
+      .then((res) => {
+        if (!res.data.values) return null;
+        for (let row of res.data.values) {
+          let obj = {};
+          for (let cell in row) {
+            obj[this.indexes.get("users")[cell]] = row[cell];
+          }
+          output.set(obj["userId"], obj);
+        }
+      });
+    return output;
+  };
+
   addTask = async (task) => {
     let row = new Promise((resolve, reject) => {
       let arr = [];
