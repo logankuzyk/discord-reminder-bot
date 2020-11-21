@@ -6,8 +6,6 @@ const paramGetter = require("../paramGetter");
 const add = new Command();
 
 add.about = "Get reminded about a course's due dates at a certain time.";
-add.help =
-  "Example command: ``$remind 2020-09-30 at 12pm for math-200`` \nGeneral form: ``$remind [YYYY-MM-DD] (at [HH:mm])? (for [course])?``";
 add.params = ["courseName", "date", "time", "memo"];
 
 add.execute = async (user, tokens) => {

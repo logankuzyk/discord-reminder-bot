@@ -3,7 +3,6 @@ const Command = require("../command");
 const cancel = new Command();
 
 cancel.about = "Cancel your ongoing command.";
-cancel.help = "";
 cancel.params = [];
 
 cancel.execute = async (user, tokens) => {

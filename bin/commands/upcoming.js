@@ -9,7 +9,6 @@ const paramGetter = require("../paramGetter");
 const upcoming = new Command();
 
 upcoming.about = "List available commands.";
-upcoming.help = "Example command: ``$help``";
 upcoming.params = ["courseName"];
 
 upcoming.execute = async (user, tokens) => {
