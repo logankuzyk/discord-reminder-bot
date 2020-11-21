@@ -134,11 +134,8 @@ class Storage {
     let row = new Promise((resolve, reject) => {
       let arr = [];
       for (let [key, value] of Object.entries(task)) {
-        console.log(key);
-        console.log(value);
         arr[this.indexes.get("all").indexOf(key)] = String(value);
       }
-      console.log(arr);
       resolve(arr);
     });
     sheets.spreadsheets.values
