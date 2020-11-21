@@ -240,7 +240,6 @@ class Storage {
   resetUser = async (userId) => {
     let user = await this.getUser(userId);
     if (user) {
-      console.log(user);
       await this.addUser(userId, user.username, null, null, null, null);
       console.log("Reset user", userId);
     } else {
