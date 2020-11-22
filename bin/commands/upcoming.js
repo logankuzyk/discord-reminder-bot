@@ -1,5 +1,3 @@
-// TODO: make a service/function which takes care of the prompts to reduce the complexity of each command's code.
-
 const Command = require("../command");
 const index = require("../../index");
 const regex = require("../regex");
