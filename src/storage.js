@@ -78,6 +78,46 @@ class Storage {
     return output;
   };
 
+  getTasksOnDay = async (date) => {
+    if (!(date instanceof Date)) {
+      date = new Date(date);
+    }
+    let tasks = await sheets.spreadsheets.values
+      .get({
+        spreadsheetId: this.sheetId,
+        range: this.pages.get("all"),
+      })
+      .then((res) => {
+        if (!res.data.values) {
+          return null;
+        }
+        let targets = res.data.values.filter((cell) => {
+          let otherDate = new Date(
+            Number(cell[this.indexes.get("all").indexOf("executeDate")])
+          );
+          return (
+            cell[this.indexes.get("all").indexOf("taskType")] == "assignment" &&
+            otherDate.getUTCFullYear() == date.getUTCFullYear() &&
+            otherDate.getUTCMonth() == date.getUTCMonth() &&
+            otherDate.getUTCDate() == date.getUTCDate()
+          );
+        });
+        console.log(targets);
+        if (targets.length == 0) return null;
+        let output = new Map();
+        console.log(targets);
+        targets.forEach((taskRow) => {
+          let obj = {};
+          taskRow.forEach((cell, index) => {
+            obj[this.indexes.get("all")[index]] = cell;
+          });
+          output.set(obj.taskId, obj);
+        });
+        return output;
+      });
+    return tasks;
+  };
+
   getAllTasks = async () => {
     let output = new Map();
     await sheets.spreadsheets.values
