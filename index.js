@@ -177,7 +177,9 @@ bot.on("message", async (msg) => {
   } catch (err) {
     bot.storage.resetUser(Number(msg.author.id));
     console.log(err);
-    msg.reply(`Something went wrong. \`\`${err}\`\``);
+    msg.reply(
+      `Something went wrong. Pinging <@237783055698231298>.\`\`${err}\`\``
+    );
     msg.channel.stopTyping();
   }
   msg.channel.stopTyping();
