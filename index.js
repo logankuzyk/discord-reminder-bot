@@ -1,9 +1,9 @@
 const Discord = require("discord.js");
 const fs = require("fs");
 const dotenv = require("dotenv").config();
-const regex = require("./bin/regex");
-const Storage = require("./bin/storage");
-const Schedule = require("./bin/schedule");
+const regex = require("./src/regex");
+const Storage = require("./src/storage");
+const Schedule = require("./src/schedule");
 // const { storage } = require("googleapis/build/src/apis/storage");
 
 const bot = new Discord.Client();
@@ -13,11 +13,11 @@ bot.on("ready", () => {
     try {
       let commands = new Map();
       let files = fs
-        .readdirSync("./bin/commands/")
+        .readdirSync("./src/commands/")
         .filter((file) => file.endsWith(".js"));
       for (let file of files) {
         let command = file.substring(0, file.indexOf("."));
-        let module = require(`./bin/commands/${command}`);
+        let module = require(`./src/commands/${command}`);
         commands.set(file.substring(0, file.indexOf(".")), module);
         console.log(`Loaded ${file}`);
       }
