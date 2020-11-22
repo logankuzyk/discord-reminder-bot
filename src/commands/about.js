@@ -1,9 +1,20 @@
-module.exports.about = "About the bot and author!";
+const Command = require("../command");
 
-module.exports.help = "Example command: ``$about``";
+const about = new Command();
 
-module.exports.execute = async ({ bot, msg }) => {
-  msg.reply(
-    "Store due dates and reminders for courses. \nDeveloped by C1RRU5. \nWant to have a closer look at the dumpster fire that stores all your important due dates? Check out https://github.com/logankuzyk/discord-reminder-bot"
-  );
+about.about = "Find out more about Assignment Reminder and its author.";
+about.params = [];
+
+about.execute = async () => {
+  let output = {
+    title: "About",
+    description:
+      "Developed by C1RRU5 using primarily Node.js and Discord.js.\nCheck out the source code on Github at https://github.com/logankuzyk/discord-reminder-bot. Stars make me happy.",
+  };
+  return {
+    embed: output,
+    complete: true,
+  };
 };
+
+module.exports = about;
