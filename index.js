@@ -71,6 +71,7 @@ bot.on("message", async (msg) => {
     );
     return;
   }
+  msg.channel.startTyping();
   console.log(`Command received: ${msg.content}`);
   let user = await bot.storage.getUser(msg.author.id);
   let command = new Promise((resolve, reject) => {
@@ -173,14 +174,12 @@ bot.on("message", async (msg) => {
       bot.storage.resetUser(Number(msg.author.id));
     }
   } catch (err) {
-    if (err.name == "TypeError") {
-      bot.storage.resetUser(Number(msg.author.id));
-      console.log(err);
-    } else {
-      console.log(err);
-      msg.reply(`Something went wrong. \`\`${err}\`\``);
-    }
+    bot.storage.resetUser(Number(msg.author.id));
+    console.log(err);
+    msg.reply(`Something went wrong. \`\`${err}\`\``);
+    msg.channel.stopTyping();
   }
+  msg.channel.stopTyping();
 });
 
 bot.on("guildCreate", async (guild) => {
