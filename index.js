@@ -170,12 +170,12 @@ bot.on("message", async (msg) => {
         job.start();
       });
       bot.storage.addTask(task);
-      bot.storage.resetUser(Number(msg.author.id));
+      bot.storage.resetUser(msg.author.id);
     } else if (context.complete) {
-      bot.storage.resetUser(Number(msg.author.id));
+      bot.storage.resetUser(msg.author.id);
     }
   } catch (err) {
-    bot.storage.resetUser(Number(msg.author.id));
+    bot.storage.resetUser(msg.author.id);
     console.log(err);
     msg.reply(
       `Something went wrong. Pinging <@237783055698231298>.\`\`${err}\`\``
