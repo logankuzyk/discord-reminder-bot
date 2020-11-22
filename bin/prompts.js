@@ -1,18 +1,18 @@
 module.exports = new Map([
   [
     "courseName",
-    'Okay, what course is the reminder for? Respond in the same format as the course channels, like $math-200 for example. You need to start the message with "$" for the bot to see it.',
+    'What **course** is the reminder for?\nRespond in the same format as the course channels, like **$math-200** for example.\nYou need to start the message with "$" for the bot to see it.',
   ],
   [
     "date",
-    'Okay, what day do you want to be reminded? Respond in the format $YYYY-MM-DD. You need to start the message with "$" for the bot to see it.',
+    'What **day** do you want to be reminded?\nRespond in the format **$YYYY-MM-DD**.\nYou need to start the message with "$" for the bot to see it.',
   ],
   [
     "time",
-    'Okay, what time do you want to be reminded on that day? Respond in the format $HH:MM for 24 hour format, or $HH:MMpm for 12 hour format. You need to start the message with "$" for the bot to see it.',
+    'What **time** do you want to be reminded on that day?\nRespond in the format **$HH:MM** for 24 hour format, or **$HH:MM[am/pm]** for 12 hour format.\nYou need to start the message with "$" for the bot to see it.',
   ],
   [
     "memo",
-    'Okay, what is the memo for the due date? Make it something helpful like the name of the assignment or test. You need to start the message with "$" for the bot to see it.',
+    'What is the **memo** for the due date?\nMake it something helpful like the name of an assignment or test.\nYou need to start the message with "$" for the bot to see it.',
   ],
 ]);
