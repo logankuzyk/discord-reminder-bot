@@ -137,6 +137,7 @@ bot.on("message", async (msg) => {
     let context = await bot.commands.get(await command).execute(user, tokens);
     if (context.embed) {
       let output = new Discord.MessageEmbed(context.embed);
+      output.setColor("ffc83d");
       msg.channel.send(output).then(() => {
         console.log("Replied with embed");
       });

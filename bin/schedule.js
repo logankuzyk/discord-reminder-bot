@@ -28,6 +28,7 @@ class Schedule {
         command(null, [task.courseName]).then((context) => {
           let channel = index.channels.cache.get(task.channelId);
           let embed = new Discord.MessageEmbed(context.embed);
+          embed.setColor("ffc83d");
           channel.send(embed);
         });
       },
