@@ -120,10 +120,16 @@ bot.on("message", async (msg) => {
     tokens.push(word.groups.token);
   }
   tokens.unshift(msg.channel.name);
-  tokens.splice(2, tokens.length - 2);
-  // This deletes any extra words from the command call.
-  // As of right now, all commands only require one token (other than courseName) to be run.
-  // Yes this is a security feature.
+  if (user) {
+    if (user.nextParam != "memo") {
+      tokens.splice(2, tokens.length - 2);
+    }
+  } else {
+    tokens.splice(2, tokens.length - 2);
+    // This deletes any extra words from the command call.
+    // As of right now, all commands only require one token (other than courseName) to be run.
+    // Yes this is a security feature.
+  }
   console.log(`Command: ${await command}`);
   console.log(`Tokens: ${tokens}`);
   try {
