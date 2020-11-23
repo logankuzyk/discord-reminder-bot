@@ -51,8 +51,60 @@ class Storage {
     this.pages = new Map([
       ["all", "Sheet1!A2:I"],
       ["users", "Sheet2!A2:J"],
+      ["old", "Sheet3!A2:I"],
     ]);
   }
+
+  refresh = async () => {
+    this.getAllTasks().then((allTasks) => {
+      let activeTasks = [];
+      let oldTasks = [];
+      allTasks.forEach((task) => {
+        if (!(Number(task.executeDate) < Date.now())) {
+          let output = [];
+          for (let [key, value] of Object.entries(task)) {
+            output[this.indexes.get("all").indexOf(key)] = String(value);
+          }
+          activeTasks.push(output);
+        } else {
+          let output = [];
+          for (let [key, value] of Object.entries(task)) {
+            output[this.indexes.get("all").indexOf(key)] = String(value);
+          }
+          oldTasks.push(output);
+        }
+      });
+      console.log(activeTasks);
+      sheets.spreadsheets.values
+        .clear({
+          spreadsheetId: this.sheetId,
+          range: this.pages.get("all"),
+        })
+        .then(() => {
+          sheets.spreadsheets.values.batchUpdate({
+            spreadsheetId: this.sheetId,
+            requestBody: {
+              data: {
+                range: this.pages.get("all"),
+                majorDimension: "ROWS",
+                values: activeTasks,
+              },
+              valueInputOption: "RAW",
+            },
+          });
+        });
+      sheets.spreadsheets.values.append({
+        spreadsheetId: this.sheetId,
+        valueInputOption: "RAW",
+        insertDataOption: "INSERT_ROWS",
+        range: this.pages.get("old"),
+        resource: {
+          range: this.pages.get("old"),
+          values: oldTasks,
+        },
+      });
+    });
+  };
 
   // Get task info from database. Returns null if not found.
   getTask = async (taskId) => {
