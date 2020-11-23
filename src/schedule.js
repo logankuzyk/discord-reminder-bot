@@ -10,9 +10,9 @@ class Schedule {
     }
   }
 
-  addJob = async (task) => {
+  addCourseJob = async (task) => {
     if (task instanceof Map) {
-      return task.forEach(this.addJob);
+      return task.forEach(this.addCourseJob);
     }
     // Execution defaults to everyday at midnight. This is for the daily class reminders.
     let executeDate = "0 0 0 * * *";

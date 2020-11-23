@@ -35,7 +35,8 @@ bot.on("ready", () => {
     bot.schedule = schedule;
     module.exports.storage = bot.storage;
     module.exports.channels = bot.channels;
-    bot.storage.getAllTasks().then(schedule.addJob);
+    bot.storage.refresh();
+    bot.storage.getAllTasks().then(schedule.addCourseJob);
     bot.storage.getAllUsers().then((users) => {
       users.forEach((user) => {
         bot.storage.resetUser(user.userId);
