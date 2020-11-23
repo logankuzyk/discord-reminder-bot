@@ -41,15 +41,16 @@ bot.on("ready", () => {
         bot.storage.resetUser(user.userId);
       });
     });
-    let channels = bot.channels.cache.filter(
-      (channel) =>
-        channel.type == "text" && channel.name.match(regex.get("course"))
-    );
-    for (let channel of channels) {
-      schedule.addJob({
-        courseName: channel[1].id,
-      });
-    }
+    // This adds a nightly reminder for all course channels. Probably won't use this.
+    // let channels = bot.channels.cache.filter(
+    //   (channel) =>
+    //     channel.type == "text" && channel.name.match(regex.get("course"))
+    // );
+    // for (let channel of channels) {
+    //   schedule.addJob({
+    //     courseName: channel[1].id,
+    //   });
+    // }
   });
 });
 
