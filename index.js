@@ -48,7 +48,7 @@ bot.on("ready", () => {
     //     channel.type == "text" && channel.name.match(regex.get("course"))
     // );
     // for (let channel of channels) {
-    //   schedule.addJob({
+    //   schedule.addCourseJob({
     //     courseName: channel[1].id,
     //   });
     // }
