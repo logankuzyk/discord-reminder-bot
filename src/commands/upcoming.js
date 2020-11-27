@@ -1,49 +1,9 @@
 const Command = require("../command");
 const index = require("../../index");
-const regex = require("../regex");
-const prompts = require("../prompts");
-const paramGetter = require("../paramGetter");
 
-const upcoming = new Command();
-
-upcoming.about = "List available commands.";
-upcoming.params = ["courseName"];
-
-upcoming.execute = async (user, tokens) => {
-  let nextParam;
-  let givenParams = {};
-  let remainingParams = [];
-  if (user && user.ongoingCommand != "null") {
-    let params = await paramGetter(user, tokens);
-    if (params) {
-      nextParam = params.nextParam;
-      givenParams = params.givenParams;
-      remainingParams = params.remainingParams;
-    } else {
-      nextParam = user.nextParam;
-      givenParams = user.givenParams;
-      remainingParams = user.remainingParams;
-    }
-  } else {
-    // Entry point of command, user has not interacted with bot before.
-    remainingParams = new Array(...upcoming.params);
-    let courseName = tokens.filter(
-      (token) => regex.get("course").exec(token) !== null
-    )[0];
-    if (courseName) {
-      givenParams.courseName = courseName;
-      remainingParams.splice(remainingParams.indexOf("courseName"), 1);
-    }
-    nextParam = remainingParams[0];
-  }
-  let body;
-  let complete;
-  let fields;
-  if (nextParam) {
-    body = prompts.get(nextParam);
-    complete = false;
-  } else {
-    // Routine on completion
+const upcoming = new Command(
+  ["courseName"],
+  async (givenParams) => {
     body = "";
     fields = await new Promise((resolve, reject) => {
       index.storage.getAllTasks().then((tasks) => {
@@ -95,18 +55,18 @@ upcoming.execute = async (user, tokens) => {
       }
     });
     complete = true;
-  }
-  return {
-    embed: {
-      title: `${givenParams.courseName.toUpperCase()} Upcoming Due Dates`,
-      description: body,
-      fields: fields,
-    },
-    complete: complete,
-    givenParams: JSON.stringify(givenParams),
-    remainingParams: remainingParams,
-    nextParam: nextParam,
-  };
-};
+    return {
+      embed: {
+        title: `${givenParams.courseName.toUpperCase()} Upcoming Due Dates`,
+        description: body,
+        fields: fields,
+      },
+      complete: true,
+    };
+  },
+  undefined,
+  "List all future due dates for a course.",
+  "help"
+);
 
 module.exports = upcoming;

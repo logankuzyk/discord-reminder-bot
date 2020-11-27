@@ -1,42 +1,8 @@
 const Command = require("../command");
-const regex = require("../regex");
-const prompts = require("../prompts");
-const paramGetter = require("../paramGetter");
 
-const remind = new Command();
-
-remind.about = "Get reminded about a course's due dates at a certain time.";
-remind.params = ["courseName", "date", "time"];
-
-remind.execute = async (user, tokens) => {
-  let nextParam;
-  let givenParams = {};
-  let remainingParams = [];
-  if (user && user.ongoingCommand != "null") {
-    let params = await paramGetter(user, tokens);
-    nextParam = params.nextParam;
-    givenParams = params.givenParams;
-    remainingParams = params.remainingParams;
-  } else {
-    // Entry point of command, user has not interacted with bot before.
-    remainingParams = new Array(...remind.params);
-    let courseName = tokens.filter(
-      (token) => regex.get("course").exec(token) !== null
-    )[0];
-    if (courseName) {
-      givenParams.courseName = courseName;
-      remainingParams.splice(remainingParams.indexOf("courseName"), 1);
-    }
-    nextParam = remainingParams[0];
-  }
-  let body;
-  let complete;
-  let task;
-  if (nextParam) {
-    body = prompts.get(nextParam);
-    complete = false;
-  } else {
-    // Routine on completion
+const remind = new Command(
+  ["courseName", "date", "time"],
+  async (givenParams) => {
     givenParams.time = new Date(givenParams.time);
     task = {
       executeDate: givenParams.time.getTime(),
@@ -48,16 +14,16 @@ remind.execute = async (user, tokens) => {
     body = `Reminder added! I will send you a PM with ${
       givenParams.courseName
     }'s due dates on ${givenParams.time.toString()}`;
-    complete = true;
-  }
-  return {
-    embed: { title: "New Reminder", description: body },
-    complete: complete,
-    givenParams: JSON.stringify(givenParams),
-    remainingParams: remainingParams,
-    nextParam: nextParam,
-    task: task,
-  };
-};
+    return {
+      embed: { title: "Success!", description: body },
+      complete: true,
+      givenParams: JSON.stringify(givenParams),
+      task: task,
+    };
+  },
+  "New Reminder",
+  "Get a DM with a course's due dates sent to you at a specific time.",
+  "remind"
+);
 
 module.exports = remind;

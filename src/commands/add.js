@@ -16,7 +16,7 @@ const add = new Command(
       givenParams.memo
     } is due on ${givenParams.time.toString()} for ${givenParams.courseName}.`;
     return {
-      embed: { title: "New Due Date", description: body },
+      embed: { title: "Success!", description: body }, // TODO update embed title on completion.
       complete: true,
       givenParams: JSON.stringify(givenParams),
       task: task,
