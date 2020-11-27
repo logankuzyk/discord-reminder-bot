@@ -77,6 +77,9 @@ bot.on("message", async (msg) => {
   console.log(`Command received: ${msg.content}`);
   let user = await bot.storage.getUser(msg.author.id);
   let command = new Promise((resolve, reject) => {
+    if (msg.content.indexOf("$cancel") >= 0) {
+      resolve("cancel");
+    }
     if (user) {
       if (user.ongoingCommand != "null") {
         console.log("Ongoing command");
@@ -115,7 +118,6 @@ bot.on("message", async (msg) => {
       description: `That command isn't recognized. Try \`\`$help\`\` if you're stuck.`,
     });
     msg.channel.send(embed);
-    tokens.unshift("cancel");
     return "cancel";
   });
   let tokens = [];
