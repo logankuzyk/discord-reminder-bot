@@ -77,9 +77,6 @@ bot.on("message", async (msg) => {
   console.log(`Command received: ${msg.content}`);
   let user = await bot.storage.getUser(msg.author.id);
   let command = new Promise((resolve, reject) => {
-    if (msg.content.indexOf("$cancel") >= 0) {
-      resolve("cancel");
-    }
     if (user) {
       if (user.ongoingCommand != "null") {
         console.log("Ongoing command");
@@ -114,10 +111,11 @@ bot.on("message", async (msg) => {
     console.log("Not a recognized command");
     let embed = new Discord.MessageEmbed({
       title: "Oops!",
+      color: "ffc83d",
       description: `That command isn't recognized. Try \`\`$help\`\` if you're stuck.`,
     });
     msg.channel.send(embed);
-    // This runs the cancel command without having "cancel" in the tokens, which means it doesn't reply with an embed. Because complete = true, this resets the user.
+    tokens.unshift("cancel");
     return "cancel";
   });
   let tokens = [];
