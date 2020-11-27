@@ -104,6 +104,14 @@ const checks = new Map([
       return output;
     },
   ],
+  [
+    "cancel",
+    (tokens) => {
+      if (tokens.indexOf("cancel") >= 0) {
+        return "cancel";
+      }
+    },
+  ],
 ]);
 
 module.exports = paramGetter;
