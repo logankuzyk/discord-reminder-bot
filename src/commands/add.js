@@ -12,19 +12,27 @@ add.execute = async (user, tokens) => {
   let nextParam;
   let givenParams = {};
   let remainingParams = [];
+  let ongoingCommand = null;
+  let body;
+  let paramReadSuccess;
   if (user && user.ongoingCommand != "null") {
+    ongoingCommand = user.ongoingCommand;
     let params = await paramGetter(user, tokens);
     if (params) {
       nextParam = params.nextParam;
       givenParams = params.givenParams;
       remainingParams = params.remainingParams;
+      paramReadSuccess = true;
+      body = prompts.get(nextParam);
     } else {
       nextParam = user.nextParam;
       givenParams = user.givenParams;
       remainingParams = user.remainingParams;
+      paramReadSuccess = false;
     }
   } else {
     // Entry point of command, user has not interacted with bot before.
+    paramReadSuccess = true;
     remainingParams = new Array(...add.params);
     let courseName = tokens.filter(
       (token) => regex.get("course").exec(token) !== null
@@ -35,11 +43,16 @@ add.execute = async (user, tokens) => {
     }
     nextParam = remainingParams[0];
   }
-  let body;
   let complete;
   let task;
-  if (nextParam) {
+  if (paramReadSuccess) {
     body = prompts.get(nextParam);
+  } else {
+    body =
+      "I wasn't able to read that, please try again.\n\n" +
+      prompts.get(nextParam);
+  }
+  if (nextParam) {
     complete = false;
   } else {
     // Routine on completion
