@@ -5,10 +5,15 @@ const index = require("../index");
 class Schedule {
   constructor(tasks) {
     this.tasks = tasks; // Same as the output of Storage.dumpSheet()
+    this.tz = "America/Los_Angeles";
     if (this.tasks) {
-      this.tasks.forEach(addJob);
+      this.tasks.forEach(addCourseJob);
     }
   }
+  addMiscJob = async (time, callback) => {
+    let job = new cron.CronJob(time, callback, null, true, this.tz);
+    return job;
+  };
 
   addCourseJob = async (task) => {
     if (task instanceof Map) {
@@ -34,7 +39,7 @@ class Schedule {
       },
       null,
       false, // Job needs to be started with .start()
-      "America/Los_Angeles"
+      this.tz
     );
     return job;
   };

@@ -171,7 +171,7 @@ bot.on("message", async (msg) => {
         }
       });
       task.authorId = msg.author.id;
-      bot.schedule.addJob(task).then((job) => {
+      bot.schedule.addCourseJob(task).then((job) => {
         job.start();
       });
       bot.storage.addTask(task);
