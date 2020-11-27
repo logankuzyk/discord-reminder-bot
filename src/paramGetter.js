@@ -23,6 +23,7 @@ paramGetter = async (user, tokens) => {
     };
   } else {
     console.log(`Did not find ${nextParam}, will prompt again`);
+    return null;
   }
 };
 
@@ -47,9 +48,8 @@ const checks = new Map([
       let output = tokens.filter((token) => new Date(token) != "Invalid Date");
       if (output.length > 0) {
         let taskTime = new Date(output[0]);
-        if (taskTime == "Invalid Date") throw new Error("Failed parsing date");
-        if (Date.now() - taskTime.getTime() <= 0)
-          throw new Error("Can't change history");
+        if (taskTime == "Invalid Date") return null;
+        if (taskTime.getTime() - Date.now() <= 0) return null;
         return output[0];
       } else {
         return null;
@@ -84,9 +84,8 @@ const checks = new Map([
         console.log(taskTime);
         taskTime = new Date(taskTime);
         console.log(taskTime);
-        if (taskTime == "Invalid Date") throw new Error("Failed parsing time");
-        if (Date.now() > taskTime.getTime())
-          throw new Error("Can't change history");
+        if (taskTime == "Invalid Date") return null;
+        if (Date.now() > taskTime.getTime()) return null;
         return taskTime;
       } else {
         return null;
