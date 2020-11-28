@@ -50,7 +50,7 @@ module.exports = class Command {
       body = prompts.get(nextParam);
     } else {
       body =
-        "I wasn't able to read that, please try again.\n\n" +
+        "**There is something wrong with your input, please try again.**\n\n" +
         prompts.get(nextParam);
     }
     if (nextParam) {
