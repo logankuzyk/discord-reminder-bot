@@ -1,5 +1,6 @@
 const { timeout } = require("cron");
 const regex = require("./regex");
+const dotenv = require("dotenv").config(); // Needed anywhere I'm dealing with dates because of tz environment variable.
 
 paramGetter = async (user, tokens) => {
   let nextParam = user.nextParam;
@@ -47,9 +48,9 @@ const checks = new Map([
       tokens = tokens.filter((token) => regex.get("date").exec(token));
       let output = tokens.filter((token) => new Date(token) != "Invalid Date");
       if (output.length > 0) {
-        let taskTime = new Date(output[0]);
+        let taskTime = new Date(output[0] + " 24:00");
         if (taskTime == "Invalid Date") return null;
-        if (taskTime.getTime() - Date.now() <= 0) return null;
+        if (Date.now() > taskTime.getTime()) return null;
         return output[0];
       } else {
         return null;
@@ -81,9 +82,7 @@ const checks = new Map([
         } else {
           taskTime += ` 00:00`;
         }
-        console.log(taskTime);
         taskTime = new Date(taskTime);
-        console.log(taskTime);
         if (taskTime == "Invalid Date") return null;
         if (Date.now() > taskTime.getTime()) return null;
         return taskTime;
