@@ -78,7 +78,7 @@ bot.on("message", async (msg) => {
   let user = await bot.storage.getUser(msg.author.id);
   let command = new Promise((resolve, reject) => {
     if (msg.content.indexOf("$cancel") >= 0) {
-      resolve("cancel");
+      reject("cancel");
     }
     if (user) {
       if (user.ongoingCommand != "null") {
@@ -110,13 +110,22 @@ bot.on("message", async (msg) => {
     } else {
       reject();
     }
-  }).catch(() => {
-    console.log("Not a recognized command");
-    let embed = new Discord.MessageEmbed({
-      title: "Oops!",
-      color: "ffc83d",
-      description: `That command isn't recognized. Try \`\`$help\`\` if you're stuck.`,
-    });
+  }).catch((err) => {
+    let embed;
+    if (err != "cancel") {
+      console.log("Not a recognized command");
+      embed = new Discord.MessageEmbed({
+        title: "Oops!",
+        color: "ffc83d",
+        description: `That command isn't recognized. Try \`\`$help\`\` if you're stuck.`,
+      });
+    } else {
+      bot.storage.resetUser(msg.author.id);
+      embed = new Discord.MessageEmbed({
+        title: "Command Canceled",
+        color: "ffc83d",
+      });
+    }
     msg.channel.send(embed);
     return "cancel";
   });
@@ -139,6 +148,9 @@ bot.on("message", async (msg) => {
   console.log(`Command: ${await command}`);
   console.log(`Tokens: ${tokens}`);
   try {
+    if ((await command) == "cancel") {
+      return; // I hate this.
+    }
     let context = await bot.commands.get(await command).execute(user, tokens);
     if (context.embed) {
       let output = new Discord.MessageEmbed(context.embed);
