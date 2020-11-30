@@ -149,6 +149,7 @@ bot.on("message", async (msg) => {
   console.log(`Tokens: ${tokens}`);
   try {
     if ((await command) == "cancel") {
+      msg.channel.stopTyping();
       return; // I hate this.
     }
     let context = await bot.commands.get(await command).execute(user, tokens);
