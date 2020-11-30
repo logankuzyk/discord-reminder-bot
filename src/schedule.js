@@ -32,12 +32,14 @@ class Schedule {
     let job = new cron.CronJob(
       executeDate,
       () => {
-        command(null, [task.courseName]).then((context) => {
-          let channel = index.channels.cache.get(task.channelId);
-          let embed = new Discord.MessageEmbed(context.embed);
-          embed.setColor("ffc83d");
-          channel.send(embed);
-        });
+        command({ courseName: [task.courseName], scheduled: true }).then(
+          (context) => {
+            let channel = index.channels.cache.get(task.channelId);
+            let embed = new Discord.MessageEmbed(context.embed);
+            embed.setColor("ffc83d");
+            channel.send(embed);
+          }
+        );
       },
       null,
       true,
