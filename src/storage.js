@@ -74,7 +74,6 @@ class Storage {
           oldTasks.push(output);
         }
       });
-      console.log(activeTasks);
       sheets.spreadsheets.values
         .clear({
           spreadsheetId: this.sheetId,
@@ -130,7 +129,10 @@ class Storage {
     return output;
   };
 
-  getTasksOnDay = async (date) => {
+  getTasksOnDay = async (date, courseName) => {
+    if (courseName) {
+      courseName = courseName.toLowerCase();
+    }
     if (!(date instanceof Date)) {
       date = new Date(date);
     }
@@ -149,15 +151,14 @@ class Storage {
           );
           return (
             cell[this.indexes.get("all").indexOf("taskType")] == "assignment" &&
-            otherDate.getUTCFullYear() == date.getUTCFullYear() &&
-            otherDate.getUTCMonth() == date.getUTCMonth() &&
-            otherDate.getUTCDate() == date.getUTCDate()
+            cell[this.indexes.get("all").indexOf("courseName")] == courseName &&
+            otherDate.getFullYear() == date.getFullYear() &&
+            otherDate.getMonth() == date.getMonth() &&
+            otherDate.getDate() == date.getDate()
           );
         });
-        console.log(targets);
         if (targets.length == 0) return null;
         let output = new Map();
-        console.log(targets);
         targets.forEach((taskRow) => {
           let obj = {};
           taskRow.forEach((cell, index) => {
