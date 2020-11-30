@@ -7,7 +7,7 @@ const upcoming = new Command(
     body = "";
     fields = await new Promise((resolve, reject) => {
       index.storage.getAllTasks().then((tasks) => {
-        let output = [];
+        let output = "";
         let dueDates = [];
         if (tasks.size == 0) {
           console.log("No due dates added");
@@ -26,18 +26,9 @@ const upcoming = new Command(
         });
         dueDates.sort((a, b) => (a.executeDate > b.executeDate ? 1 : -1));
         dueDates.forEach((task) => {
-          output.push(
-            {
-              name: "Task Name",
-              value: task.memo + "\n",
-              inline: false,
-            },
-            {
-              name: "Date Due",
-              value: new Date(Number(task.executeDate)),
-              inline: false,
-            }
-          );
+          output += `**Task Name**: ${task.memo}\n **Date Due**: ${new Date(
+            Number(task.executeDate)
+          )}\n`;
         });
         if (output.length == 0) {
           console.log("No due dates added");
@@ -56,7 +47,7 @@ const upcoming = new Command(
     });
     complete = true;
     let title;
-    if (user == null) {
+    if (givenParams.scheduled) {
       title = `Something is due soon for ${givenParams.courseName.toUpperCase()}!`;
     } else {
       title = `${givenParams.courseName.toUpperCase()} Upcoming Due Dates`;
