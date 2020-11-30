@@ -18,15 +18,15 @@ module.exports = class Command {
     let ongoingCommand = null;
     let body;
     let paramReadSuccess;
+    let newParams;
     if (user && user.ongoingCommand != "null") {
       ongoingCommand = user.ongoingCommand;
-      let newParams = await paramGetter(user, tokens);
+      newParams = await paramGetter(user, tokens);
       if (newParams) {
         nextParam = newParams.nextParam;
         givenParams = newParams.givenParams;
         remainingParams = newParams.remainingParams;
         paramReadSuccess = true;
-        body = prompts.get(nextParam);
       } else {
         nextParam = user.nextParam;
         givenParams = user.givenParams;
@@ -46,7 +46,12 @@ module.exports = class Command {
       }
       nextParam = remainingParams[0];
     }
-    if (paramReadSuccess) {
+    if (newParams && newParams.message) {
+      body =
+        newParams.message +
+        `\n\nIf your due date has not been added, please continue with the next parameter.\n\n` +
+        prompts.get(nextParam);
+    } else if (paramReadSuccess) {
       body = prompts.get(nextParam);
     } else {
       body =

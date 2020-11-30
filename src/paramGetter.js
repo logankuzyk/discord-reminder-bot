@@ -12,7 +12,32 @@ paramGetter = async (user, tokens) => {
   console.log(`Looking for ${nextParam}`);
 
   let param = checks.get(nextParam)(tokens, givenParams);
+  let message = await new Promise((resolve, reject) => {
+    if (param && nextParam == "date") {
+      const index = require("../index");
+      let date = new Date(`${param} 00:00`);
+      let output = "";
+      index.storage
+        .getTasksOnDay(date, givenParams.courseName)
+        .then((tasks) => {
+          if (tasks.size > 0 && user.ongoingCommand == "add") {
+            output =
+              "There is already one or more things due on that day.\nIf the task you were going to add is a duplicate of one of the below, please type **$cancel**.\n\n";
+            tasks.forEach((task) => {
+              output += `**Task Name**: ${task.memo}\n **Date Due**: ${new Date(
+                Number(task.executeDate)
+              )}\n`;
+            });
+            resolve(output);
+          } else {
+            resolve(undefined);
+          }
+        });
+    }
+  });
   if (param) {
+    if (nextParam == "date") {
+    }
     console.log(`Found ${nextParam}, ${param}`);
     remainingParams.splice(remainingParams.indexOf(nextParam), 1);
     givenParams[nextParam] = param;
@@ -21,6 +46,7 @@ paramGetter = async (user, tokens) => {
       nextParam: nextParam,
       givenParams: givenParams,
       remainingParams: remainingParams,
+      message: message,
     };
   } else {
     console.log(`Did not find ${nextParam}, will prompt again`);
