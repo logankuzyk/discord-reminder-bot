@@ -36,7 +36,7 @@ bot.on("ready", () => {
     module.exports.storage = bot.storage;
     module.exports.channels = bot.channels;
     bot.storage.refresh();
-    bot.storage.getAllTasks().then(schedule.addCourseJob);
+    bot.storage.getAllTasks().then(schedule.addCourseReminder); // Calls $upcoming 4 hours before each course's due dates.
     bot.storage.getAllUsers().then((users) => {
       users.forEach((user) => {
         bot.storage.resetUser(user.userId);
@@ -48,7 +48,7 @@ bot.on("ready", () => {
     //     channel.type == "text" && channel.name.match(regex.get("course"))
     // );
     // for (let channel of channels) {
-    //   schedule.addCourseJob({
+    //   schedule.addCourseReminder({
     //     courseName: channel[1].id,
     //   });
     // }
@@ -184,9 +184,7 @@ bot.on("message", async (msg) => {
         }
       });
       task.authorId = msg.author.id;
-      bot.schedule.addCourseJob(task).then((job) => {
-        job.start();
-      });
+      bot.schedule.addCourseReminder(task);
       bot.storage.addTask(task);
       bot.storage.resetUser(msg.author.id);
     } else if (context.complete) {

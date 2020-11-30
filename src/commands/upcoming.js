@@ -55,9 +55,15 @@ const upcoming = new Command(
       }
     });
     complete = true;
+    let title;
+    if (user == null) {
+      title = `Something is due soon for ${givenParams.courseName.toUpperCase()}!`;
+    } else {
+      title = `${givenParams.courseName.toUpperCase()} Upcoming Due Dates`;
+    }
     return {
       embed: {
-        title: `${givenParams.courseName.toUpperCase()} Upcoming Due Dates`,
+        title: title,
         description: body,
         fields: fields,
       },

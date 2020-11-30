@@ -1,13 +1,14 @@
 const Discord = require("discord.js");
 const cron = require("cron");
 const index = require("../index");
+const dotenv = require("dotenv").config();
 
 class Schedule {
   constructor(tasks) {
     this.tasks = tasks; // Same as the output of Storage.dumpSheet()
-    this.tz = "America/Los_Angeles";
+    this.tz = process.env.TZ;
     if (this.tasks) {
-      this.tasks.forEach(addCourseJob);
+      this.tasks.forEach(addCourseReminder);
     }
   }
   addMiscJob = async (time, callback) => {
@@ -15,14 +16,15 @@ class Schedule {
     return job;
   };
 
-  addCourseJob = async (task) => {
+  addCourseReminder = async (task) => {
     if (task instanceof Map) {
-      return task.forEach(this.addCourseJob);
+      return task.forEach(this.addCourseReminder);
     }
     // Execution defaults to everyday at midnight. This is for the daily class reminders.
     let executeDate = "0 0 0 * * *";
     if (task.executeDate) {
       executeDate = new Date(Number(task.executeDate));
+      executeDate.setHours(executeDate.getHours() - 4);
       if (executeDate.getTime() - Date.now() < 0) return;
     }
     let command = index.commands.get("upcoming").execute;
@@ -38,7 +40,7 @@ class Schedule {
         });
       },
       null,
-      false, // Job needs to be started with .start()
+      true,
       this.tz
     );
     return job;
