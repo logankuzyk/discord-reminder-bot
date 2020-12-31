@@ -20,7 +20,7 @@ paramGetter = async (user, tokens) => {
       index.storage
         .getTasksOnDay(date, givenParams.courseName)
         .then((tasks) => {
-          if (tasks.size > 0 && user.ongoingCommand == "add") {
+          if (tasks && tasks.size > 0 && user.ongoingCommand == "add") {
             output =
               "There is already one or more things due on that day.\nIf the task you were going to add is a duplicate of one of the below, please type **$cancel**.\n\n";
             tasks.forEach((task) => {
