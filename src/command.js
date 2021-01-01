@@ -23,8 +23,6 @@ module.exports = class Command {
       ongoingCommand = user.ongoingCommand;
       newParams = await paramGetter(user, tokens);
       if (newParams) {
-        console.log("got newparams");
-        console.log(newParams);
         nextParam = newParams.nextParam;
         givenParams = newParams.givenParams;
         remainingParams = newParams.remainingParams;
