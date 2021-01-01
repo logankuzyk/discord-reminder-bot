@@ -27,7 +27,7 @@ paramGetter = async (user, tokens) => {
             tasks.forEach((task) => {
               output += `**Task Name**: ${task.memo}\n **Date Due**: ${new Date(
                 Number(task.executeDate)
-              )}\n`;
+              )}\n\n`;
             });
             resolve(output);
           } else {
