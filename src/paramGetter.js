@@ -1,6 +1,7 @@
 const { timeout } = require("cron");
 const regex = require("./regex");
 const dotenv = require("dotenv").config(); // Needed anywhere I'm dealing with dates because of tz environment variable.
+const blocked = require("blocked-at");
 
 paramGetter = async (user, tokens) => {
   let nextParam = user.nextParam;
@@ -22,7 +23,7 @@ paramGetter = async (user, tokens) => {
         .then((tasks) => {
           if (tasks && tasks.size > 0 && user.ongoingCommand == "add") {
             output =
-              "There is already one or more things due on that day.\nIf the task you were going to add is a duplicate of one of the below, please type **$cancel**.\n\n";
+              "**There is already one or more things due on that day.**\nIf the task you were going to add is a duplicate of one of the below, please type **$cancel**.\nIf your due date has NOT been added, please continue with the next parameter.\n\n";
             tasks.forEach((task) => {
               output += `**Task Name**: ${task.memo}\n **Date Due**: ${new Date(
                 Number(task.executeDate)
@@ -33,11 +34,11 @@ paramGetter = async (user, tokens) => {
             resolve(undefined);
           }
         });
+    } else {
+      resolve(undefined);
     }
   });
-  if (param) {
-    if (nextParam == "date") {
-    }
+  if (checks.get(nextParam)(tokens, givenParams)) {
     console.log(`Found ${nextParam}, ${param}`);
     remainingParams.splice(remainingParams.indexOf(nextParam), 1);
     givenParams[nextParam] = param;
@@ -138,5 +139,9 @@ const checks = new Map([
     },
   ],
 ]);
+
+// blocked((time, stack) => {
+//   console.log(`Blocked for ${time}ms, operation started here:`, stack);
+// });
 
 module.exports = paramGetter;

@@ -23,6 +23,8 @@ module.exports = class Command {
       ongoingCommand = user.ongoingCommand;
       newParams = await paramGetter(user, tokens);
       if (newParams) {
+        console.log("got newparams");
+        console.log(newParams);
         nextParam = newParams.nextParam;
         givenParams = newParams.givenParams;
         remainingParams = newParams.remainingParams;
@@ -47,15 +49,12 @@ module.exports = class Command {
       nextParam = remainingParams[0];
     }
     if (newParams && newParams.message) {
-      body =
-        newParams.message +
-        `\n\nIf your due date has not been added, please continue with the next parameter.\n\n` +
-        prompts.get(nextParam);
+      body = newParams.message + prompts.get(nextParam);
     } else if (paramReadSuccess) {
       body = prompts.get(nextParam);
     } else {
       body =
-        "**There is something wrong with your input, please try again.**\n\n" +
+        "**There is something wrong with your input, please try again. (If you just provided a date or time, make sure it's in the future.)**\n\n" +
         prompts.get(nextParam);
     }
     if (nextParam) {
