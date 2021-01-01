@@ -1,88 +1,59 @@
 const Discord = require("discord.js");
 const fs = require("fs");
-const cron = require("cron");
-const { google } = require("googleapis");
 const dotenv = require("dotenv").config();
+const regex = require("./src/regex");
+const Storage = require("./src/storage");
+const Schedule = require("./src/schedule");
+const blocked = require("blocked-at");
+// const { storage } = require("googleapis/build/src/apis/storage");
 
 const bot = new Discord.Client();
-const auth = new google.auth.GoogleAuth({
-  keyFile: process.env.GOOGLE_APPLICATION_CREDENTIALS,
-  scopes: ["https://www.googleapis.com/auth/spreadsheets"],
-});
-google.options({
-  auth: auth,
-});
-const sheets = google.sheets({
-  version: "v4",
-  credentials: auth,
-});
-
-bot.loadRange = (range) => {
-  sheets.spreadsheets.values
-    .get({
-      spreadsheetId: process.env.SHEET_ID,
-      range: range,
-    })
-    .then((res) => {
-      if (!res.data.values) {
-        return;
-      }
-      for (let row of res.data.values) {
-        let date = new Date(Number(row[1]));
-        if (date.getTime() > Date.now()) {
-          if (row[4] == "reminder") {
-            let user = bot.users.cache.get(row[3]);
-            user.createDM().then((dmChannel) => {
-              bot.addJob(date, bot.commands.get("upcoming").execute, {
-                bot: bot,
-                channel: dmChannel,
-                course: row[2],
-              });
-            });
-            console.log(`Added reminder on ${date.toString()}`);
-          }
-          console.log(`Added due date on ${date.toString()}`);
-        }
-      }
-    });
-};
-
-bot.addJob = (date, command, options) => {
-  let job = new cron.CronJob(
-    date,
-    () => {
-      command(options);
-    },
-    null,
-    true,
-    "America/Los_Angeles"
-  );
-  job.start();
-};
 
 bot.on("ready", () => {
-  bot.commands = new Discord.Collection();
-  let files = fs
-    .readdirSync("./commands/")
-    .filter((file) => file.endsWith(".js"));
-  for (let file of files) {
-    let command = file.substring(0, file.indexOf("."));
-    let module = require(`./commands/${command}`);
-    bot.commands.set(file.substring(0, file.indexOf(".")), module);
-    console.log(`Loaded ${file}`);
-  }
-  let channels = bot.channels.cache.filter(
-    (channel) =>
-      channel.type == "text" &&
-      channel.name.match(/^([a-z]{3,4})-([0-9]{2})\w$/g)
-  );
-  for (let channel of channels) {
-    bot.addJob("0 0 0 * * *", bot.commands.get("upcoming").execute, {
-      bot: bot,
-      channel: channel[1],
+  new Promise((resolve, reject) => {
+    try {
+      let commands = new Map();
+      let files = fs
+        .readdirSync("./src/commands/")
+        .filter((file) => file.endsWith(".js"));
+      for (let file of files) {
+        let command = file.substring(0, file.indexOf("."));
+        let module = require(`./src/commands/${command}`);
+        commands.set(file.substring(0, file.indexOf(".")), module);
+        console.log(`Loaded ${file}`);
+      }
+      resolve(commands);
+    } catch (err) {
+      reject(err);
+    }
+  }).then((commands) => {
+    // Export commands after loading.
+    module.exports.commands = commands;
+    bot.commands = commands;
+    const storage = new Storage();
+    const schedule = new Schedule();
+    bot.storage = storage;
+    bot.schedule = schedule;
+    module.exports.storage = bot.storage;
+    module.exports.channels = bot.channels;
+    bot.storage.refresh();
+    bot.storage.getAllTasks().then(schedule.addCourseReminder); // Calls $upcoming 4 hours before each course's due dates.
+    bot.storage.getAllUsers().then((users) => {
+      users.forEach((user) => {
+        bot.storage.resetUser(user.userId);
+      });
     });
-  }
-  bot.loadRange("A2:E");
+    // This adds a nightly reminder for all course channels. Probably won't use this.
+    // let channels = bot.channels.cache.filter(
+    //   (channel) =>
+    //     channel.type == "text" && channel.name.match(regex.get("course"))
+    // );
+    // for (let channel of channels) {
+    //   schedule.addCourseReminder({
+    //     courseName: channel[1].id,
+    //   });
+    // }
+  });
 });
 
 bot.on("message", async (msg) => {
@@ -94,41 +65,145 @@ bot.on("message", async (msg) => {
   ) {
     return;
   } else if (
-    !msg.channel.name.match(/^([a-z]{3,4})-([0-9]{2})\w$/g) &&
+    !msg.channel.name.match(regex.get("course")) &&
     msg.channel.name != "bot-commands"
   ) {
     console.log("Summoned in non-class channel");
-    msg.reply("This channel doesn't correspond with a class.");
+    msg.reply(
+      "This channel doesn't correspond with a course. Use the course channel or #bot-commands"
+    );
     return;
   }
+  msg.channel.startTyping();
   console.log(`Command received: ${msg.content}`);
-  let {
-    groups: { command, input },
-  } = /^\$(?<command>\w+)( )*(?<input>(.+) *)*$/g.exec(msg.content);
-  try {
-    bot.commands
-      .get(command)
-      .execute({ bot: bot, msg: msg, input: input })
-      .catch((err) => {
-        console.log(err);
-        msg.reply(`Something went wrong. \`\`${err}\`\``);
-      });
-  } catch (err) {
-    if (err.name == "TypeError") {
-      console.log("Not a recognized command");
-      console.log(err);
-      msg.reply(
-        `That isn't a recognized command, type \`\`$help\`\` for a list of available commands.`
-      );
-      msg.react("😂");
-    } else {
-      console.log(err);
-      msg.reply(`Something went wrong. \`\`${err}\`\``);
+  let user = await bot.storage.getUser(msg.author.id);
+  let command = new Promise((resolve, reject) => {
+    if (msg.content.indexOf("$cancel") >= 0) {
+      reject("cancel");
     }
+    if (user) {
+      if (user.ongoingCommand != "null") {
+        console.log("Ongoing command");
+        resolve(user.ongoingCommand);
+      } else if (regex.get("command").exec(msg.content) != null) {
+        if (
+          bot.commands.has(
+            regex.get("command").exec(msg.content).groups.command
+          )
+        ) {
+          console.log("Cached user, running new command");
+          resolve(regex.get("command").exec(msg.content).groups.command);
+        } else {
+          reject();
+        }
+      } else {
+        reject();
+      }
+    } else if (regex.get("command").exec(msg.content) != null) {
+      if (
+        bot.commands.has(regex.get("command").exec(msg.content).groups.command)
+      ) {
+        console.log("New user, running command");
+        resolve(regex.get("command").exec(msg.content).groups.command);
+      } else {
+        reject();
+      }
+    } else {
+      reject();
+    }
+  }).catch((err) => {
+    let embed;
+    if (err != "cancel") {
+      console.log("Not a recognized command");
+      embed = new Discord.MessageEmbed({
+        title: "Oops!",
+        color: "ffc83d",
+        description: `That command isn't recognized. Try \`\`$help\`\` if you're stuck.`,
+      });
+    } else {
+      bot.storage.resetUser(msg.author.id);
+      embed = new Discord.MessageEmbed({
+        title: "Command Canceled",
+        color: "ffc83d",
+      });
+    }
+    msg.channel.send(embed);
+    return "cancel";
+  });
+  let tokens = [];
+  let word;
+  while ((word = regex.get("token").exec(msg.content)) !== null) {
+    tokens.push(word.groups.token);
   }
+  tokens.unshift(msg.channel.name);
+  if (user) {
+    if (user.nextParam != "memo") {
+      tokens.splice(2, tokens.length - 2);
+    }
+  } else {
+    tokens.splice(2, tokens.length - 2);
+    // This deletes any extra words from the command call.
+    // As of right now, all commands only require one token (other than courseName) to be run.
+    // Yes this is a security feature.
+  }
+  console.log(`Command: ${await command}`);
+  console.log(`Tokens: ${tokens}`);
+  try {
+    if ((await command) == "cancel") {
+      msg.channel.stopTyping();
+      return; // I hate this.
+    }
+    let context = await bot.commands.get(await command).execute(user, tokens);
+    if (context.embed) {
+      let output = new Discord.MessageEmbed(context.embed);
+      output.setColor("ffc83d");
+      msg.channel.send(output).then(() => {
+        console.log("Replied with embed");
+      });
+    }
+    if (!context.complete) {
+      bot.storage.addUser(
+        msg.author.id,
+        msg.author.username,
+        await command,
+        context.givenParams,
+        context.nextParam,
+        context.remainingParams
+      );
+    } else if (context.task) {
+      let task = context.task;
+      task.taskId = msg.id;
+      // Didn't need to make this a promise, but I did.
+      task.channelId = await new Promise((resolve, reject) => {
+        if (task.taskType == "assignment") {
+          resolve(msg.channel.id);
+        } else if (task.taskType == "reminder") {
+          msg.author.createDM().then((dmChannel) => {
+            console.log(dmChannel);
+            resolve(dmChannel.id);
+          });
+        }
+      });
+      task.authorId = msg.author.id;
+      bot.schedule.addCourseReminder(task);
+      bot.storage.addTask(task);
+      bot.storage.resetUser(msg.author.id);
+    } else if (context.complete) {
+      bot.storage.resetUser(msg.author.id);
+    }
+  } catch (err) {
+    bot.storage.resetUser(msg.author.id);
+    console.log(err);
+    msg.reply(
+      `Something went wrong. Pinging <@237783055698231298>.\n\`\`${err}\`\``
+    );
+    msg.channel.stopTyping();
+  }
+  msg.channel.stopTyping();
 });
 
 bot.on("guildCreate", async (guild) => {
+  // Sends greeting to bot-commands text channel on joining.
   let channel = guild.channels.cache.find(
     (channel) => channel.name == "bot-commands" && channel.type == "text"
   );
@@ -139,72 +214,8 @@ bot.on("guildCreate", async (guild) => {
   }
 });
 
-bot.on("messageReactionAdd", async (reaction, user) => {
-  try {
-    await reaction.fetch();
-  } catch (err) {
-    console.log(`Something went wrong getting the message: ${err}`);
-    return;
-  }
-  if (reaction.emoji.name == "👍") {
-    sheets.spreadsheets.values
-      .get({
-        spreadsheetId: process.env.SHEET_ID,
-        range: "A2:G",
-      })
-      .then(async (res) => {
-        let cols = res.data.values;
-        let target = cols.filter((cell) => cell[0] == reaction.message.id)[0];
-        if (!target) {
-          return;
-        }
-        let score = Number(target[6]);
-        if (score < 3) {
-          score++;
-        }
-        let index = cols.indexOf(target);
-        let cell = `Sheet1!F${index + 2}:G${index + 2}`;
-        sheets.spreadsheets.values
-          .update({
-            spreadsheetId: process.env.SHEET_ID,
-            range: cell,
-            valueInputOption: "RAW",
-            resource: {
-              values: [[1, score]],
-            },
-          })
-          .then(console.log(`Upvoted ${target[0]}`));
-      });
-  } else if (reaction.emoji.name == "👎") {
-    sheets.spreadsheets.values
-      .get({
-        spreadsheetId: process.env.SHEET_ID,
-        range: "A2:G",
-      })
-      .then(async (res) => {
-        let cols = res.data.values;
-        let target = cols.filter((cell) => cell[0] == reaction.message.id)[0];
-        if (!target) {
-          return;
-        }
-        let score = Number(target[6]);
-        if (score > -3) {
-          score--;
-        }
-        let index = cols.indexOf(target);
-        let cell = `Sheet1!F${index + 2}:G${index + 2}`;
-        sheets.spreadsheets.values
-          .update({
-            spreadsheetId: process.env.SHEET_ID,
-            range: cell,
-            valueInputOption: "RAW",
-            resource: {
-              values: [[1, score]],
-            },
-          })
-          .then(console.log(`Downvoted ${target[0]}`));
-      });
-  }
-});
+// blocked((time, stack) => {
+//   console.log(`Blocked for ${time}ms, operation started here:`, stack);
+// });
 
 bot.login(process.env.TOKEN);

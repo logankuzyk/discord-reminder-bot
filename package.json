@@ -16,7 +16,8 @@
     "googleapis": "^60.0.1"
   },
   "devDependencies": {
-    "nodemon": "^2.0.4",
+    "blocked-at": "^1.2.0",
+    "nodemon": "^2.0.6",
     "prettier": "^2.1.2"
   }
 }
