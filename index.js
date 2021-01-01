@@ -4,6 +4,7 @@ const dotenv = require("dotenv").config();
 const regex = require("./src/regex");
 const Storage = require("./src/storage");
 const Schedule = require("./src/schedule");
+const blocked = require("blocked-at");
 // const { storage } = require("googleapis/build/src/apis/storage");
 
 const bot = new Discord.Client();
@@ -211,6 +212,10 @@ bot.on("guildCreate", async (guild) => {
       "I'm here to keep track of your assignments! To get started, type ``$help``!"
     );
   }
+});
+
+blocked((time, stack) => {
+  console.log(`Blocked for ${time}ms, operation started here:`, stack);
 });
 
 bot.login(process.env.TOKEN);
