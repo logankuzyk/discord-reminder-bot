@@ -9,7 +9,7 @@ module.exports = new Map([
   ],
   [
     "time",
-    'What **time** do you want on that day?\nRespond in the format **$HH:MM** for 24 hour format, or **$HH:MM[am/pm]** for 12 hour format.\nYou need to start the message with "$" for the bot to see it.\nType $cancel to escape.',
+    'What **time** do you want on that day?\nRespond in the format **$HH:MM** for 24 hour format, or **$HH:MMam/pm** for 12 hour format.\nYou need to start the message with "$" for the bot to see it.\nType $cancel to escape.',
   ],
   [
     "memo",
