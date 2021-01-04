@@ -1,4 +1,3 @@
-const { timeout } = require("cron");
 const regex = require("./regex");
 const dotenv = require("dotenv").config(); // Needed anywhere I'm dealing with dates because of tz environment variable.
 const blocked = require("blocked-at");
