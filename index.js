@@ -218,4 +218,7 @@ bot.on("guildCreate", async (guild) => {
 //   console.log(`Blocked for ${time}ms, operation started here:`, stack);
 // });
 
-bot.login(process.env.TOKEN);
+bot.login(process.env.TOKEN).catch((err) => {
+  console.log("Invalid or missing Discord login token");
+  process.exit();
+});
