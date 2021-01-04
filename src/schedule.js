@@ -29,6 +29,12 @@ class Schedule {
     } else if (task.executeDate && task.taskType == "reminder") {
       executeDate = new Date(Number(task.executeDate));
     }
+
+    if (executeDate.getTime() < Date.now()) {
+      console.log("Date has passed, skipping job");
+      return;
+    }
+
     let command = index.commands.get("upcoming").onParamFulfilment;
 
     let job = new cron.CronJob(
