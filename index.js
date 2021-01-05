@@ -169,7 +169,6 @@ bot.on("message", async (msg) => {
           resolve(msg.channel.id);
         } else if (task.taskType == "reminder") {
           msg.author.createDM().then((dmChannel) => {
-            console.log(dmChannel);
             resolve(dmChannel.id);
           });
         }
