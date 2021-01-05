@@ -42,14 +42,13 @@ class Schedule {
       );
     };
 
-    let dayBefore;
     if (task.executeDate && task.taskType == "assignment") {
-      dayBefore = new Date(task.executeDate);
-      dayBefore.setHours(dayBefore.getHours() - 24);
-      await this.addMiscJob(dayBefore, callback);
+      await this.addMiscJob(new Date(task.executeDate - 300000), callback); // 5 minutes before due date.
+      await this.addMiscJob(new Date(task.executeDate - 86400000), callback); // 24 hours before due date.
+    } else {
+      await this.addMiscJob(new Date(task.executeDate), callback);
     }
 
-    await this.addMiscJob(new Date(task.executeDate), callback);
     return;
   };
 }
