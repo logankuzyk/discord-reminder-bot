@@ -70,7 +70,7 @@ bot.on("message", async (msg) => {
     if (msg.content.indexOf("$cancel") >= 0) {
       reject("cancel");
     }
-    if (user && user.activeChannel == Number(msg.channel.id)) {
+    if (user && Number(user.activeChannel) == Number(msg.channel.id)) {
       if (user.ongoingCommand != "null") {
         console.log("Ongoing command");
         resolve(user.ongoingCommand);
