@@ -5,8 +5,6 @@ const regex = require("./src/regex");
 const Storage = require("./src/storage");
 const Schedule = require("./src/schedule");
 const blocked = require("blocked-at");
-const { time } = require("console");
-// const { storage } = require("googleapis/build/src/apis/storage");
 
 const bot = new Discord.Client();
 
