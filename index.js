@@ -82,7 +82,7 @@ bot.on("message", async (msg) => {
     if (msg.content.indexOf("$cancel") >= 0) {
       reject("cancel");
     }
-    if (user) {
+    if (user && user.activeChannel == Number(msg.channel.id)) {
       if (user.ongoingCommand != "null") {
         console.log("Ongoing command");
         resolve(user.ongoingCommand);
@@ -123,14 +123,13 @@ bot.on("message", async (msg) => {
       });
       msg.channel.send(embed);
     } else if (user && user.ongoingCommand != "null") {
-      bot.storage.resetUser(msg.author.id);
       embed = new Discord.MessageEmbed({
         title: "Command Canceled",
         color: "ffc83d",
       });
       msg.channel.send(embed);
     }
-
+    bot.storage.resetUser(msg.author.id);
     return "cancel";
   });
   let tokens = [];
@@ -171,11 +170,9 @@ bot.on("message", async (msg) => {
         await command,
         context.givenParams,
         context.nextParam,
-        context.remainingParams
+        context.remainingParams,
+        msg.channel.id
       );
-      let timeout = new Date();
-      timeout.setSeconds(timeout.getSeconds + 60);
-      bot.schedule.addMiscJob(timeout, bot.storage.resetUser(msg.author.id));
     } else if (context.task) {
       let task = context.task;
       task.taskId = msg.id;
