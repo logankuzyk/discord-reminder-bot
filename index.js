@@ -5,6 +5,7 @@ const regex = require("./src/regex");
 const Storage = require("./src/storage");
 const Schedule = require("./src/schedule");
 const blocked = require("blocked-at");
+const { time } = require("console");
 // const { storage } = require("googleapis/build/src/apis/storage");
 
 const bot = new Discord.Client();
@@ -172,6 +173,9 @@ bot.on("message", async (msg) => {
         context.nextParam,
         context.remainingParams
       );
+      let timeout = new Date();
+      timeout.setSeconds(timeout.getSeconds + 60);
+      bot.schedule.addMiscJob(timeout, bot.storage.resetUser(msg.author.id));
     } else if (context.task) {
       let task = context.task;
       task.taskId = msg.id;

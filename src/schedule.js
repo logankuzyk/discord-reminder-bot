@@ -12,7 +12,10 @@ class Schedule {
     }
   }
   addMiscJob = async (time, callback) => {
-    if (time instanceof Date && time.getTime() > Date.now()) {
+    if (!time instanceof Date) {
+      return;
+    }
+    if (time.getTime() > Date.now()) {
       let job = new cron.CronJob(time, callback, null, true, this.tz);
       return job;
     } else {
