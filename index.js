@@ -120,14 +120,16 @@ bot.on("message", async (msg) => {
         color: "ffc83d",
         description: `That command isn't recognized. Try \`\`$help\`\` if you're stuck.`,
       });
-    } else {
+      msg.channel.send(embed);
+    } else if (user && user.ongoingCommand != "null") {
       bot.storage.resetUser(msg.author.id);
       embed = new Discord.MessageEmbed({
         title: "Command Canceled",
         color: "ffc83d",
       });
+      msg.channel.send(embed);
     }
-    msg.channel.send(embed);
+
     return "cancel";
   });
   let tokens = [];
@@ -200,6 +202,7 @@ bot.on("message", async (msg) => {
     msg.channel.stopTyping();
   }
   msg.channel.stopTyping();
+  return;
 });
 
 bot.on("guildCreate", async (guild) => {
