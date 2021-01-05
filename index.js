@@ -199,9 +199,13 @@ bot.on("guildCreate", async (guild) => {
     (channel) => channel.name == "bot-commands" && channel.type == "text"
   );
   if (channel) {
-    channel.send(
-      "I'm here to keep track of your assignments! To get started, type ``$help``!"
-    );
+    let output = new Discord.MessageEmbed({
+      color: "ffc83d",
+      title: "Hi!",
+      description:
+        "I'm here to keep track of your assignments! To get started, type ``$help``!",
+    });
+    channel.send(output);
   }
 });
 
