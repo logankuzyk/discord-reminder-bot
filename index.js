@@ -36,22 +36,12 @@ bot.on("ready", () => {
     module.exports.storage = bot.storage;
     module.exports.channels = bot.channels;
     bot.storage.refresh();
-    bot.storage.getAllTasks().then(schedule.addCourseReminder); // Calls $upcoming 4 hours before each course's due dates.
+    bot.storage.getAllTasks().then(schedule.addCourseReminder);
     bot.storage.getAllUsers().then((users) => {
       users.forEach((user) => {
         bot.storage.resetUser(user.userId);
       });
     });
-    // This adds a nightly reminder for all course channels. Probably won't use this.
-    // let channels = bot.channels.cache.filter(
-    //   (channel) =>
-    //     channel.type == "text" && channel.name.match(regex.get("course"))
-    // );
-    // for (let channel of channels) {
-    //   schedule.addCourseReminder({
-    //     courseName: channel[1].id,
-    //   });
-    // }
   });
 });
 
@@ -174,7 +164,6 @@ bot.on("message", async (msg) => {
     } else if (context.task) {
       let task = context.task;
       task.taskId = msg.id;
-      // Didn't need to make this a promise, but I did.
       task.channelId = await new Promise((resolve, reject) => {
         if (task.taskType == "assignment") {
           resolve(msg.channel.id);
