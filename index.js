@@ -8,43 +8,6 @@ const blocked = require("blocked-at");
 
 const bot = new Discord.Client();
 
-bot.on("ready", () => {
-  new Promise((resolve, reject) => {
-    try {
-      let commands = new Map();
-      let files = fs
-        .readdirSync("./src/commands/")
-        .filter((file) => file.endsWith(".js"));
-      for (let file of files) {
-        let command = file.substring(0, file.indexOf("."));
-        let module = require(`./src/commands/${command}`);
-        commands.set(file.substring(0, file.indexOf(".")), module);
-        console.log(`Loaded ${file}`);
-      }
-      resolve(commands);
-    } catch (err) {
-      reject(err);
-    }
-  }).then((commands) => {
-    // Export commands after loading.
-    module.exports.commands = commands;
-    bot.commands = commands;
-    const storage = new Storage();
-    const schedule = new Schedule();
-    bot.storage = storage;
-    bot.schedule = schedule;
-    module.exports.storage = bot.storage;
-    module.exports.channels = bot.channels;
-    bot.storage.refresh();
-    bot.storage.getAllTasks().then(schedule.addCourseReminder);
-    bot.storage.getAllUsers().then((users) => {
-      users.forEach((user) => {
-        bot.storage.resetUser(user.userId);
-      });
-    });
-  });
-});
-
 bot.on("message", async (msg) => {
   if (
     !msg.content.startsWith("$") ||
@@ -211,6 +174,51 @@ bot.on("guildCreate", async (guild) => {
 // blocked((time, stack) => {
 //   console.log(`Blocked for ${time}ms, operation started here:`, stack);
 // });
+
+bot.on("ready", () => {
+  new Promise((resolve, reject) => {
+    try {
+      let commands = new Map();
+      let files = fs
+        .readdirSync("./src/commands/")
+        .filter((file) => file.endsWith(".js"));
+      for (let file of files) {
+        let command = file.substring(0, file.indexOf("."));
+        let module = require(`./src/commands/${command}`);
+        commands.set(file.substring(0, file.indexOf(".")), module);
+        console.log(`Loaded ${file}`);
+      }
+      resolve(commands);
+    } catch (err) {
+      reject(err);
+    }
+  }).then((commands) => {
+    // Export commands after loading.
+    module.exports.commands = commands;
+    bot.commands = commands;
+    const storage = new Storage();
+    const schedule = new Schedule();
+    bot.storage = storage;
+    bot.schedule = schedule;
+    module.exports.storage = bot.storage;
+    module.exports.channels = bot.channels;
+    bot.storage.refresh().then(() => {
+      bot.storage.getAllTasks().then(schedule.addCourseReminder);
+      bot.storage.getAllUsers().then((users) => {
+        users.forEach((user) => {
+          bot.storage.resetUser(user.userId);
+        });
+      });
+    });
+    // Sync spreadsheet every minute
+    bot.schedule.addMiscJob("0 * * * * *", () => {
+      console.log("Synchronizing with spreadsheet");
+      bot.storage.refresh().then(() => {
+        bot.storage.getAllTasks().then(schedule.addCourseReminder);
+      });
+    });
+  });
+});
 
 bot.login(process.env.TOKEN).catch((err) => {
   console.log("Invalid or missing Discord login token");
