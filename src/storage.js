@@ -130,7 +130,7 @@ class Storage {
     return output;
   };
 
-  getTasksOnDay = async (date, courseName) => {
+  getAssignmentsOnDay = async (date, courseName) => {
     if (courseName) {
       courseName = courseName.toLowerCase();
     }
