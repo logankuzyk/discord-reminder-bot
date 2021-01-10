@@ -19,7 +19,7 @@ const upcoming = new Command(
           if (
             task.courseName == givenParams.courseName &&
             task.taskType == "assignment" &&
-            Number(task.executeDate) - Date.now() > 0
+            Number(task.executeDate) > Date.now()
           ) {
             dueDates.push(task);
           }
