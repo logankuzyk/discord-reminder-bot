@@ -8,7 +8,7 @@ const add = new Command(
       executeDate: givenParams.time.getTime(),
       courseName: givenParams.courseName,
       taskType: "assignment",
-      isActive: 1,
+      isActive: "TRUE",
       score: 1,
       memo: givenParams.memo,
     };

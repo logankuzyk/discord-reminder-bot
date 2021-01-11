@@ -5,56 +5,8 @@ const regex = require("./src/regex");
 const Storage = require("./src/storage");
 const Schedule = require("./src/schedule");
 const blocked = require("blocked-at");
-// const { storage } = require("googleapis/build/src/apis/storage");
 
 const bot = new Discord.Client();
-
-bot.on("ready", () => {
-  new Promise((resolve, reject) => {
-    try {
-      let commands = new Map();
-      let files = fs
-        .readdirSync("./src/commands/")
-        .filter((file) => file.endsWith(".js"));
-      for (let file of files) {
-        let command = file.substring(0, file.indexOf("."));
-        let module = require(`./src/commands/${command}`);
-        commands.set(file.substring(0, file.indexOf(".")), module);
-        console.log(`Loaded ${file}`);
-      }
-      resolve(commands);
-    } catch (err) {
-      reject(err);
-    }
-  }).then((commands) => {
-    // Export commands after loading.
-    module.exports.commands = commands;
-    bot.commands = commands;
-    const storage = new Storage();
-    const schedule = new Schedule();
-    bot.storage = storage;
-    bot.schedule = schedule;
-    module.exports.storage = bot.storage;
-    module.exports.channels = bot.channels;
-    bot.storage.refresh();
-    bot.storage.getAllTasks().then(schedule.addCourseReminder); // Calls $upcoming 4 hours before each course's due dates.
-    bot.storage.getAllUsers().then((users) => {
-      users.forEach((user) => {
-        bot.storage.resetUser(user.userId);
-      });
-    });
-    // This adds a nightly reminder for all course channels. Probably won't use this.
-    // let channels = bot.channels.cache.filter(
-    //   (channel) =>
-    //     channel.type == "text" && channel.name.match(regex.get("course"))
-    // );
-    // for (let channel of channels) {
-    //   schedule.addCourseReminder({
-    //     courseName: channel[1].id,
-    //   });
-    // }
-  });
-});
 
 bot.on("message", async (msg) => {
   if (
@@ -81,7 +33,7 @@ bot.on("message", async (msg) => {
     if (msg.content.indexOf("$cancel") >= 0) {
       reject("cancel");
     }
-    if (user) {
+    if (user && Number(user.activeChannel) == Number(msg.channel.id)) {
       if (user.ongoingCommand != "null") {
         console.log("Ongoing command");
         resolve(user.ongoingCommand);
@@ -120,14 +72,15 @@ bot.on("message", async (msg) => {
         color: "ffc83d",
         description: `That command isn't recognized. Try \`\`$help\`\` if you're stuck.`,
       });
-    } else {
-      bot.storage.resetUser(msg.author.id);
+      msg.channel.send(embed);
+    } else if (user && user.ongoingCommand != "null") {
       embed = new Discord.MessageEmbed({
         title: "Command Canceled",
         color: "ffc83d",
       });
+      msg.channel.send(embed);
     }
-    msg.channel.send(embed);
+    bot.storage.resetUser(msg.author.id);
     return "cancel";
   });
   let tokens = [];
@@ -168,18 +121,17 @@ bot.on("message", async (msg) => {
         await command,
         context.givenParams,
         context.nextParam,
-        context.remainingParams
+        context.remainingParams,
+        msg.channel.id
       );
     } else if (context.task) {
       let task = context.task;
       task.taskId = msg.id;
-      // Didn't need to make this a promise, but I did.
       task.channelId = await new Promise((resolve, reject) => {
         if (task.taskType == "assignment") {
           resolve(msg.channel.id);
         } else if (task.taskType == "reminder") {
           msg.author.createDM().then((dmChannel) => {
-            console.log(dmChannel);
             resolve(dmChannel.id);
           });
         }
@@ -200,6 +152,7 @@ bot.on("message", async (msg) => {
     msg.channel.stopTyping();
   }
   msg.channel.stopTyping();
+  return;
 });
 
 bot.on("guildCreate", async (guild) => {
@@ -208,15 +161,64 @@ bot.on("guildCreate", async (guild) => {
     (channel) => channel.name == "bot-commands" && channel.type == "text"
   );
   if (channel) {
-    channel.send(
-      "I'm here to keep track of your assignments! To get started, type ``$help``!"
-    );
+    let output = new Discord.MessageEmbed({
+      color: "ffc83d",
+      title: "Hi!",
+      description:
+        "I'm here to keep track of your assignments! To get started, type ``$help``!",
+    });
+    channel.send(output);
   }
 });
 
 // blocked((time, stack) => {
 //   console.log(`Blocked for ${time}ms, operation started here:`, stack);
 // });
+
+bot.on("ready", () => {
+  new Promise((resolve, reject) => {
+    try {
+      let commands = new Map();
+      let files = fs
+        .readdirSync("./src/commands/")
+        .filter((file) => file.endsWith(".js"));
+      for (let file of files) {
+        let command = file.substring(0, file.indexOf("."));
+        let module = require(`./src/commands/${command}`);
+        commands.set(file.substring(0, file.indexOf(".")), module);
+        console.log(`Loaded ${file}`);
+      }
+      resolve(commands);
+    } catch (err) {
+      reject(err);
+    }
+  }).then((commands) => {
+    // Export commands after loading.
+    module.exports.commands = commands;
+    bot.commands = commands;
+    const storage = new Storage();
+    const schedule = new Schedule();
+    bot.storage = storage;
+    bot.schedule = schedule;
+    module.exports.storage = bot.storage;
+    module.exports.channels = bot.channels;
+    bot.storage.refresh().then(() => {
+      bot.storage.getAllTasks().then(schedule.addCourseReminder);
+      bot.storage.getAllUsers().then((users) => {
+        users.forEach((user) => {
+          bot.storage.resetUser(user.userId);
+        });
+      });
+    });
+    // Sync spreadsheet every minute
+    bot.schedule.addMiscJob("0 * * * * *", () => {
+      console.log("Synchronizing with spreadsheet");
+      bot.storage.refresh().then(() => {
+        bot.storage.getAllTasks().then(schedule.addCourseReminder);
+      });
+    });
+  });
+});
 
 bot.login(process.env.TOKEN).catch((err) => {
   console.log("Invalid or missing Discord login token");

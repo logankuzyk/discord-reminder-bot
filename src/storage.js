@@ -44,6 +44,7 @@ class Storage {
           "givenParams",
           "nextParam",
           "remainingParams",
+          "activeChannel",
           "range",
         ],
       ],
@@ -60,13 +61,14 @@ class Storage {
       let activeTasks = [];
       let oldTasks = [];
       allTasks.forEach((task) => {
-        if (!(Number(task.executeDate) < Date.now())) {
+        if (Number(task.executeDate) > Date.now() && task.isActive == "TRUE") {
           let output = [];
           for (let [key, value] of Object.entries(task)) {
             output[this.indexes.get("all").indexOf(key)] = String(value);
           }
           activeTasks.push(output);
         } else {
+          task.isActive = "FALSE";
           let output = [];
           for (let [key, value] of Object.entries(task)) {
             output[this.indexes.get("all").indexOf(key)] = String(value);
@@ -129,7 +131,7 @@ class Storage {
     return output;
   };
 
-  getTasksOnDay = async (date, courseName) => {
+  getAssignmentsOnDay = async (date, courseName) => {
     if (courseName) {
       courseName = courseName.toLowerCase();
     }
@@ -217,6 +219,7 @@ class Storage {
         obj["timeUpdated"] = Number(obj["timeUpdated"]);
         obj["givenParams"] = JSON.parse(obj["givenParams"]);
         obj["remainingParams"] = obj["remainingParams"].split(",");
+        obj["activeChannel"] = Number(obj["activeChannel"]);
         obj["range"] = range;
         return obj;
       });
@@ -279,7 +282,8 @@ class Storage {
     ongoingCommand = null,
     givenParams = [],
     nextParam = null,
-    remainingParams = []
+    remainingParams = [],
+    activeChannel
   ) => {
     let user = await this.getUser(userId);
     let range = this.pages.get("users");
@@ -289,6 +293,7 @@ class Storage {
       user["givenParams"] = givenParams;
       user["nextParam"] = nextParam;
       user["remainingParams"] = remainingParams;
+      user["activeChannel"] = activeChannel;
       range = user["range"];
     } else {
       user = {

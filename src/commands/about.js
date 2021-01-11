@@ -6,7 +6,7 @@ const about = new Command(
     let output = {
       title: "About",
       description:
-        "Developed by C1RRU5 using primarily Node.js and Discord.js.\nCheck out the source code on Github at https://github.com/logankuzyk/discord-reminder-bot. Stars make me happy.",
+        "Developed by C1RRU5 using primarily Node.js and Discord.js.\n\nCheck out the source code on Github: https://github.com/logankuzyk/discord-reminder-bot. Stars make me happy.\n\nI also have a YouTube channel: https://www.youtube.com/channel/UCpdQ9H-TNGpTAe8HcaMyHaw",
     };
     return {
       embed: output,

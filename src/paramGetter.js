@@ -1,4 +1,3 @@
-const { timeout } = require("cron");
 const regex = require("./regex");
 const dotenv = require("dotenv").config(); // Needed anywhere I'm dealing with dates because of tz environment variable.
 const blocked = require("blocked-at");
@@ -19,7 +18,7 @@ paramGetter = async (user, tokens) => {
       let date = new Date(`${param} 00:00`);
       let output = "";
       index.storage
-        .getTasksOnDay(date, givenParams.courseName)
+        .getAssignmentsOnDay(date, givenParams.courseName)
         .then((tasks) => {
           if (tasks && tasks.size > 0 && user.ongoingCommand == "add") {
             output =
