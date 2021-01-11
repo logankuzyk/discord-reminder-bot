@@ -8,7 +8,7 @@ const remind = new Command(
       executeDate: givenParams.time.getTime(),
       courseName: givenParams.courseName,
       taskType: "reminder",
-      isActive: 1,
+      isActive: "TRUE",
       score: 1,
     };
     body = `Reminder added! I will send you a PM with ${

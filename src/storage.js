@@ -61,15 +61,7 @@ class Storage {
       let activeTasks = [];
       let oldTasks = [];
       allTasks.forEach((task) => {
-        let status = new Boolean(task.isActive);
-        if (Number(task.executeDate) < Date.now() || !status) {
-          task.isActive = "0";
-          status = false;
-        } else {
-          task.isActive = "1";
-          status = true;
-        }
-        if (status) {
+        if (Number(task.executeDate) > Date.now() || task.isActive == "TRUE") {
           let output = [];
           for (let [key, value] of Object.entries(task)) {
             output[this.indexes.get("all").indexOf(key)] = String(value);
