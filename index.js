@@ -129,7 +129,19 @@ bot.on("message", async (msg) => {
       task.taskId = msg.id;
       task.channelId = await new Promise((resolve, reject) => {
         if (task.taskType == "assignment") {
-          resolve(msg.channel.id);
+          console.log(msg.channel.name);
+          if (msg.channel.name.toLowerCase() == "bot-commands") {
+            let server = bot.guilds.cache.get(process.env.SERVER_ID);
+            let courseChannel = server.channels.cache
+              .filter(
+                (channel) => channel.name.toLowerCase() == task.courseName
+              )
+              .values()
+              .next().value;
+            resolve(courseChannel.id);
+          } else {
+            resolve(msg.channel.id);
+          }
         } else if (task.taskType == "reminder") {
           msg.author.createDM().then((dmChannel) => {
             resolve(dmChannel.id);
