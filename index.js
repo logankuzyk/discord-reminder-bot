@@ -226,8 +226,11 @@ bot.on("ready", () => {
     bot.schedule.addMiscJob("0 * * * * *", () => {
       console.log("Synchronizing with spreadsheet");
       bot.storage.refresh().then(() => {
-        bot.storage.getAllTasks().then(schedule.addCourseReminder);
+        bot.storage.getAllTasks().then(bot.schedule.synchronize);
       });
+      // .then(() => {
+      //   bot.storage.getAllTasks().then(schedule.addCourseReminder);
+      // });
     });
   });
 });

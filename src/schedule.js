@@ -4,13 +4,21 @@ const index = require("../index");
 const dotenv = require("dotenv").config();
 
 class Schedule {
-  constructor(tasks) {
-    this.tasks = tasks; // Same as the output of Storage.dumpSheet()
+  constructor() {
+    this.courseReminders = new Map(); // Map of all cron jobs which send reminder messages to users or course channels, key is the reminder/assignment ID.
     this.tz = process.env.TZ;
-    if (this.tasks) {
-      this.tasks.forEach(addCourseReminder);
-    }
   }
+
+  synchronize = async (sheetTasks) => {
+    this.courseReminders.forEach((scheduledTaskJobs, scheduledTaskId) => {
+      if (!sheetTasks.has(scheduledTaskId)) {
+        scheduledTaskJobs.forEach((job) => job.stop());
+        this.courseReminders.delete(scheduledTaskId);
+        console.log(`Deleted ${scheduledTaskId}`);
+      }
+    });
+  };
+
   addMiscJob = async (time, callback) => {
     try {
       let job = new cron.CronJob(time, callback, null, true, this.tz);
@@ -24,6 +32,8 @@ class Schedule {
     if (task instanceof Map) {
       return task.forEach(this.addCourseReminder);
     }
+
+    task.taskId = String(task.taskId);
     task.executeDate = Number(task.executeDate);
 
     let command = index.commands.get("upcoming").onParamFulfilment;
@@ -38,12 +48,18 @@ class Schedule {
       );
     };
 
+    let jobs;
+
     if (task.executeDate && task.taskType == "assignment") {
-      await this.addMiscJob(new Date(task.executeDate - 300000), callback); // 5 minutes before due date.
-      await this.addMiscJob(new Date(task.executeDate - 86400000), callback); // 24 hours before due date.
+      jobs = [
+        await this.addMiscJob(new Date(task.executeDate - 300000), callback),
+        await this.addMiscJob(new Date(task.executeDate - 86400000), callback),
+      ]; // 5 minutes and 24 hour reminders before due date.
     } else {
-      await this.addMiscJob(new Date(task.executeDate), callback);
+      jobs = [await this.addMiscJob(new Date(task.executeDate), callback)];
     }
+
+    this.courseReminders.set(task.taskId, jobs);
 
     return;
   };
