@@ -4,7 +4,6 @@ const dotenv = require("dotenv").config();
 const regex = require("./src/regex");
 const Storage = require("./src/storage");
 const Schedule = require("./src/schedule");
-const blocked = require("blocked-at");
 
 const bot = new Discord.Client();
 
@@ -182,10 +181,6 @@ bot.on("guildCreate", async (guild) => {
     channel.send(output);
   }
 });
-
-// blocked((time, stack) => {
-//   console.log(`Blocked for ${time}ms, operation started here:`, stack);
-// });
 
 bot.on("ready", () => {
   new Promise((resolve, reject) => {
