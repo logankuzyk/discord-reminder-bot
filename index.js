@@ -4,7 +4,6 @@ const dotenv = require("dotenv").config();
 const regex = require("./src/regex");
 const Storage = require("./src/storage");
 const Schedule = require("./src/schedule");
-const blocked = require("blocked-at");
 
 const bot = new Discord.Client();
 
@@ -150,7 +149,12 @@ bot.on("message", async (msg) => {
       });
       task.authorId = msg.author.id;
       bot.schedule.addCourseReminder(task);
-      bot.storage.addTask(task);
+      bot.storage.addTask(task).then(() => {
+        console.log("Synchronizing with spreadsheet");
+        bot.storage.refresh().then(() => {
+          bot.storage.getAllTasks().then(bot.schedule.synchronize);
+        });
+      });
       bot.storage.resetUser(msg.author.id);
     } else if (context.complete) {
       bot.storage.resetUser(msg.author.id);
@@ -183,10 +187,6 @@ bot.on("guildCreate", async (guild) => {
   }
 });
 
-// blocked((time, stack) => {
-//   console.log(`Blocked for ${time}ms, operation started here:`, stack);
-// });
-
 bot.on("ready", () => {
   new Promise((resolve, reject) => {
     try {
@@ -213,6 +213,7 @@ bot.on("ready", () => {
     bot.storage = storage;
     bot.schedule = schedule;
     module.exports.storage = bot.storage;
+    module.exports.schedule = bot.schedule;
     module.exports.channels = bot.channels;
     bot.storage.refresh().then(() => {
       bot.storage.getAllTasks().then(schedule.addCourseReminder);
@@ -223,15 +224,12 @@ bot.on("ready", () => {
       });
     });
     // Sync spreadsheet every minute
-    bot.schedule.addMiscJob("0 * * * * *", () => {
-      console.log("Synchronizing with spreadsheet");
-      bot.storage.refresh().then(() => {
-        bot.storage.getAllTasks().then(bot.schedule.synchronize);
-      });
-      // .then(() => {
-      //   bot.storage.getAllTasks().then(schedule.addCourseReminder);
-      // });
-    });
+    // bot.schedule.addMiscJob("0 * * * * *", () => {
+    //   console.log("Synchronizing with spreadsheet");
+    //   bot.storage.refresh().then(() => {
+    //     bot.storage.getAllTasks().then(bot.schedule.synchronize);
+    //   });
+    // });
   });
 });
 

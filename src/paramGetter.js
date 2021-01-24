@@ -1,6 +1,5 @@
 const regex = require("./regex");
 const dotenv = require("dotenv").config(); // Needed anywhere I'm dealing with dates because of tz environment variable.
-const blocked = require("blocked-at");
 
 paramGetter = async (user, tokens) => {
   let nextParam = user.nextParam;
@@ -138,9 +137,5 @@ const checks = new Map([
     },
   ],
 ]);
-
-// blocked((time, stack) => {
-//   console.log(`Blocked for ${time}ms, operation started here:`, stack);
-// });
 
 module.exports = paramGetter;
