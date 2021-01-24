@@ -6,6 +6,9 @@ const upcoming = new Command(
   async (givenParams) => {
     body = "";
     fields = await new Promise((resolve, reject) => {
+      index.storage.refresh().then(() => {
+        index.storage.getAllTasks().then(index.schedule.synchronize);
+      });
       index.storage.getAllTasks().then((tasks) => {
         let output = "";
         let dueDates = [];
